@@ -1,4 +1,4 @@
-﻿<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Page xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps"  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -11,6 +11,121 @@
       DataContext="{Binding Main, Source={StaticResource Locator}}">
 
     <Grid>
-        <TextBlock Text="HELLO MVVM" FontSize="48"></TextBlock>
+        <Hub>
+            <HubSection>
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <TextBlock x:Uid="Header" Text="Windows Phone client" 
+                                   Style="{ThemeResource TitleTextBlockStyle}" 
+                                   Margin="0,12,0,0"/>
+                        <TextBlock Text="MAP" Margin="0,-6.5,0,26.5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Maps:MapControl/>
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+            
+            <HubSection>
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <TextBlock x:Uid="Header" Text="Windows Phone client" 
+                                   Style="{ThemeResource TitleTextBlockStyle}" 
+                                   Margin="0,12,0,0"/>
+                        <TextBlock Text="STREAMS" Margin="0,-6.5,0,26.5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <ListView 
+                        AutomationProperties.AutomationId="ItemListViewSection3"
+                        AutomationProperties.Name="Items In Group"
+                        SelectionMode="None"
+                        IsItemClickEnabled="True"
+                        ContinuumNavigationTransitionInfo.ExitElementContainer="True"
+                        ItemsSource="{Binding Drones}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Rectangle Width="79" Height="79">
+                                        <Rectangle.Fill>
+                                            <SolidColorBrush Color="{Binding IconColor}"/>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                    <!--<Border Background="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}" Margin="0,9.5,0,0" Width="79" Height="79">
+                                        
+                                    </Border>-->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="14.5,0,0,0">
+                                        <TextBlock Text="{Binding DroneType}" Style="{ThemeResource ListViewItemTextBlockStyle}"/>
+                                        <TextBlock Text="{Binding Task}" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
+                                        <TextBlock Text="{Binding Possition}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </DataTemplate>
+            </HubSection>
+
+            <HubSection>
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <TextBlock x:Uid="Header" Text="Windows Phone client" 
+                                   Style="{ThemeResource TitleTextBlockStyle}" 
+                                   Margin="0,12,0,0"/>
+                        <TextBlock Text="SETTINGS" Margin="0,-6.5,0,26.5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Text="Server IP" 
+                                   Style="{ThemeResource BaseTextBlockStyle}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Margin="5"
+                                 InputScope="Number"
+                                 Text="{Binding Ip, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="Port" 
+                                   Style="{ThemeResource BaseTextBlockStyle}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1"
+                                 Margin="5"
+                                 InputScope="Number"
+                                 Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+        </Hub>
     </Grid>
 </Page>
