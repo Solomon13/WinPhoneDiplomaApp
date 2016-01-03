@@ -1,17 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Foundation;
+﻿using Windows.Devices.Geolocation;
+using GalaSoft.MvvmLight;
 using WinPhoneClient.Enums;
 
 namespace WinPhoneClient.Model
 {
     public class Drone
     {
-        public Point Possition { get; set; }
-        public DroneType DroneType { get; set; }
+        #region Constructor
+        public Drone(DroneType type)
+        {
+            DroneType = type;
+        }
+        #endregion
+        #region Properties
+        public Geopoint DroneGeopoint { get; set; }
+
+        public DroneType DroneType { get;}
+
         public string CurrecntTask { get; set; }
+        #endregion
     }
 }

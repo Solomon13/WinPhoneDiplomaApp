@@ -8,7 +8,8 @@
       x:Class="WinPhoneClient.MainPage"
       mc:Ignorable="d ignore"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-      DataContext="{Binding Main, Source={StaticResource Locator}}">
+      DataContext="{Binding Main, Source={StaticResource Locator}}"
+      xmlns:Command="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Platform">
 
     <Grid>
         <Hub>
@@ -29,7 +30,19 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Maps:MapControl/>
+                        <Maps:MapControl 
+                            Center="{Binding UserPossition}"
+                            Name="MainMap" 
+                            ZoomLevel="{Binding ZoomLavel}">
+                            <ContentControl x:Name="UserPointPossition"
+                                            ContentTemplate="{StaticResource UserPushpinControl}" 
+                                            Maps:MapControl.Location="{Binding UserPossition}" 
+                                            Visibility="{Binding UserPointVisibility}"/>
+                            <Maps:MapItemsControl
+                                x:Name="DronePoints"
+                                ItemsSource="{Binding Drones}"
+                                ItemTemplate="{StaticResource DronePushpinControl}"/>
+                        </Maps:MapControl>
                     </Grid>
                 </DataTemplate>
             </HubSection>

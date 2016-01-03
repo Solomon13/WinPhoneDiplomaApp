@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Devices.Geolocation;
 using Windows.UI;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 using GalaSoft.MvvmLight;
 using WinPhoneClient.Model;
@@ -14,6 +16,7 @@ namespace WinPhoneClient.ViewModel
     {
         #region Fields
         private readonly Drone _droneModel;
+        private Visibility _detailsVisibility = Visibility.Collapsed;
         #endregion
         #region Constructor
         public DroneInfo(Drone drone)
@@ -26,9 +29,9 @@ namespace WinPhoneClient.ViewModel
 
         #region Properties
 
-        public string Possition
+        public string FormatedPossition
         {
-            get { return $"Possition: {_droneModel.Possition}"; }
+            get { return $"{_droneModel.DroneGeopoint.Position.Latitude:##.0000 °}, {_droneModel.DroneGeopoint.Position.Longitude:##.0000 °}"; }
         }
 
         public string DroneType
@@ -57,6 +60,23 @@ namespace WinPhoneClient.ViewModel
 
                 return Colors.White;
             }
+        }
+
+        public Geopoint DroneGeopoint
+        {
+            get { return _droneModel.DroneGeopoint; }
+            set
+            {
+                _droneModel.DroneGeopoint = value;
+                RaisePropertyChanged(nameof(DroneGeopoint));
+                RaisePropertyChanged(nameof(FormatedPossition));
+            }
+        }
+
+        public Visibility DetailsVisibility
+        {
+            get { return _detailsVisibility; }
+            set { Set(ref _detailsVisibility, value); }
         }
         #endregion
     }

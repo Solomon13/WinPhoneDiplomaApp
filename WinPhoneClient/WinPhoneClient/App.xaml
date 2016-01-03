@@ -4,6 +4,7 @@
              xmlns:vm="using:WinPhoneClient.ViewModel"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
              mc:Ignorable="d">
 
     <Application.Resources>
@@ -15,10 +16,78 @@
                 <!--Add other global resource dictionaries here-->
     		</ResourceDictionary.MergedDictionaries>
 
+            <SolidColorBrush x:Key="DronePushpinControlColor" Color="CornflowerBlue" Opacity="0.8" />
     		<!--Global View Model Locator-->
     		<vm:ViewModelLocator x:Key="Locator"
     			d:IsDataSource="True" />
-    	</ResourceDictionary>
+            <DataTemplate x:Key="UserPushpinControl">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Image Source="Design/user.png" Height="30"/>
+                    <TextBlock Grid.Row="1" 
+                               HorizontalAlignment="Center"
+                               Margin="0,2"
+                               Text="{Binding Path=UserPossitionString}"
+                               FontSize="14"
+                               Foreground="Black"/>
+                </Grid>
+            </DataTemplate>
+            
+            <DataTemplate x:Key="DronePushpinControl">
+                <Grid MaxWidth="150"   
+                      maps:MapControl.Location="{Binding DroneGeopoint}">
+                    <!--<i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Tap">
+                            <i:InvokeCommandAction Command="{Binding SampleCommand}"
+CommandParameter="MyView" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>-->
+                    <!--<Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                    </Grid.RowDefinitions>-->
+                    <Border CornerRadius="3" Background="{StaticResource DronePushpinControlColor}">
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle 
+                                Width="24" 
+                                Height="24"
+                                Margin="5">
+                                <Rectangle.Fill>
+                                    <SolidColorBrush Color="{Binding Path=IconColor}"/>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <StackPanel Visibility="{Binding Path=DetailsVisibility}">
+                                <TextBlock Text="{Binding Path=DroneType}" FontWeight="Bold" FontSize="12" Foreground="Black"/>
+                                <TextBlock Text="{Binding Path=FormatedPossition}" FontSize="12" Foreground="Black"/>
+                                <TextBlock Text="{Binding Path=Task}" FontSize="12" Foreground="Black"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <!--<Path Grid.Row="1"
+                          Fill="{StaticResource DronePushpinControlColor}"
+                          Data="M33.4916,35.3059 L42.1937,35.3059 L38.1973,40.6036 z" 
+                          HorizontalAlignment="Center" 
+                          Height="6.302" 
+                          Margin="0,-1,0,0" 
+                          Stretch="Fill" 
+                          UseLayoutRounding="False" 
+                          Width="9.702"/>-->
+                </Grid>
+            </DataTemplate>
+
+            <Style x:Key="CheckGridStyle" TargetType="CheckBox">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <Grid x:Name="CheckGrid" Background="Transparent"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
     
 </Application>

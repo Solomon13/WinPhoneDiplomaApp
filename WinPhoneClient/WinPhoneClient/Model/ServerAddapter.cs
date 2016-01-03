@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using WinPhoneClient.Enums;
+using WinPhoneClient.ViewModel;
 
 namespace WinPhoneClient.Model
 {
     class ServerAddapter
     {
         private Settings _settings = new Settings();
-        private List<Drone> _droneList = new List<Drone>
+        private ObservableCollection<DroneInfo> _droneList = new ObservableCollection<DroneInfo>()
         {
-            new Drone {CurrecntTask = "Collect info", DroneType = DroneType.Uterus, Possition = new Point(1,1)},
-            new Drone {CurrecntTask = "Moving to target", DroneType = DroneType.Quadrocopter, Possition = new Point(2,2)},
-            new Drone {CurrecntTask = "Searching", DroneType = DroneType.Tank, Possition = new Point(3,3)},
-            new Drone {CurrecntTask = "Returnung to initial point", DroneType = DroneType.Quadrocopter, Possition = new Point(4,4)}
+            new DroneInfo(new Drone (DroneType.Uterus){CurrecntTask = "Collect info", DroneGeopoint = new Geopoint(
+                new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1311, Altitude = 120},
+                AltitudeReferenceSystem.Terrain) })
         };
 
         public Settings Settings
@@ -24,7 +26,7 @@ namespace WinPhoneClient.Model
             get { return _settings; }
         }
 
-        public List<Drone> DroneList
+        public ObservableCollection<DroneInfo> DroneList
         {
             get { return _droneList; }
         } 

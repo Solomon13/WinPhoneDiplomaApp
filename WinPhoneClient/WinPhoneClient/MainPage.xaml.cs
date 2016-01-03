@@ -1,4 +1,7 @@
-﻿using Windows.Phone.UI.Input;
+﻿using Windows.Devices.Geolocation;
+using Windows.Phone.UI.Input;
+using Windows.UI.Xaml.Controls.Maps;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=391641
