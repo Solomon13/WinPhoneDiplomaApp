@@ -8,8 +8,7 @@
       x:Class="WinPhoneClient.MainPage"
       mc:Ignorable="d ignore"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-      DataContext="{Binding Main, Source={StaticResource Locator}}"
-      xmlns:Command="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Platform">
+      DataContext="{Binding Main, Source={StaticResource Locator}}">
 
     <Grid>
         <Hub>
@@ -19,7 +18,7 @@
                         <TextBlock x:Uid="Header" Text="Windows Phone client" 
                                    Style="{ThemeResource TitleTextBlockStyle}" 
                                    Margin="0,12,0,0"/>
-                        <TextBlock Text="MAP" Margin="0,-6.5,0,26.5" 
+                        <TextBlock Text="MAP" Margin="0,-6.5,0,5" 
                                    Style="{ThemeResource HeaderTextBlockStyle}" 
                                    TextWrapping="NoWrap" 
                                    CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
@@ -29,11 +28,13 @@
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Maps:MapControl 
-                            Center="{Binding UserPossition}"
+                        <Maps:MapControl Grid.Row="0"
+                            Center="{Binding MapCenterGeopoint, Mode=TwoWay}"
                             Name="MainMap" 
-                            ZoomLevel="{Binding ZoomLavel}">
+                            ZoomLevel="{Binding ZoomLavel, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            MapServiceToken="ArI68MgTvnNeI6ql1ulSeWxwHDRSTjOdkhowekMZNOgKEy-pMLxl8mzM9tAPihwH">
                             <ContentControl x:Name="UserPointPossition"
                                             ContentTemplate="{StaticResource UserPushpinControl}" 
                                             Maps:MapControl.Location="{Binding UserPossition}" 
@@ -43,6 +44,34 @@
                                 ItemsSource="{Binding Drones}"
                                 ItemTemplate="{StaticResource DronePushpinControl}"/>
                         </Maps:MapControl>
+                        <StackPanel Grid.Row="1">
+                            <Grid Visibility="{Binding SettingsVisibility}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*" MinWidth="200"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Center item:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" 
+                                          VerticalAlignment="Center"
+                                          Margin="10,5"
+                                          ItemsSource="{Binding MapItemNamesCollection}"
+                                          SelectedItem="{Binding SelectedMapItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Zoom:" VerticalAlignment="Center" FontSize="14"/>
+                                <Slider Grid.Row="1" Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Margin="5,15,5,0"
+                                        Minimum="1" 
+                                        Maximum="20"
+                                        Value="{Binding ZoomLavel, Mode=TwoWay}"/>
+                            </Grid>
+                            <AppBarButton HorizontalAlignment="Center" Command="{Binding ShowSettingsCommand}" Icon="help"/>
+                        </StackPanel>
+                        
                     </Grid>
                 </DataTemplate>
             </HubSection>
@@ -75,18 +104,19 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Rectangle Width="79" Height="79">
-                                        <Rectangle.Fill>
+                                    <Border>
+                                        <Border.Background>
                                             <SolidColorBrush Color="{Binding IconColor}"/>
-                                        </Rectangle.Fill>
-                                    </Rectangle>
+                                        </Border.Background>
+                                        <Image Width="79" Height="79" Source="{Binding DroneIcon}"/>
+                                    </Border>
                                     <!--<Border Background="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}" Margin="0,9.5,0,0" Width="79" Height="79">
                                         
                                     </Border>-->
                                     <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="14.5,0,0,0">
                                         <TextBlock Text="{Binding DroneType}" Style="{ThemeResource ListViewItemTextBlockStyle}"/>
                                         <TextBlock Text="{Binding Task}" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
-                                        <TextBlock Text="{Binding Possition}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
+                                        <TextBlock Text="{Binding FormatedPossition}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>

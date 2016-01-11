@@ -18,6 +18,8 @@ namespace WinPhoneClient.Model
         public DroneType DroneType { get;}
 
         public string CurrecntTask { get; set; }
+
+        public string Id { get; set; }
         #endregion
     }
 }
