@@ -55,13 +55,13 @@
                                     <ColumnDefinition Width="*" MinWidth="200"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Text="Center item:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14"/>
+                                <TextBlock Text="Center item:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="18"/>
                                 <ComboBox Grid.Row="0" Grid.Column="1" 
                                           VerticalAlignment="Center"
                                           Margin="10,5"
                                           ItemsSource="{Binding MapItemNamesCollection}"
                                           SelectedItem="{Binding SelectedMapItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Zoom:" VerticalAlignment="Center" FontSize="14"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Zoom:" VerticalAlignment="Center" FontSize="18"/>
                                 <Slider Grid.Row="1" Grid.Column="1"
                                         VerticalAlignment="Center"
                                         Margin="5,15,5,0"
@@ -69,7 +69,18 @@
                                         Maximum="20"
                                         Value="{Binding ZoomLavel, Mode=TwoWay}"/>
                             </Grid>
-                            <AppBarButton HorizontalAlignment="Center" Command="{Binding ShowSettingsCommand}" Icon="help"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <AppBarButton HorizontalAlignment="Center" Command="{Binding ShowSettingsCommand}">
+                                    <AppBarButton.Icon>
+                                        <BitmapIcon UriSource="Assets/settings.png" Height="20"/>
+                                    </AppBarButton.Icon>
+                                </AppBarButton>
+                                <AppBarButton HorizontalAlignment="Center" Command="{Binding MoveToCenterCommand}">
+                                    <AppBarButton.Icon>
+                                        <BitmapIcon UriSource="Assets/center.png" Height="20"/>
+                                    </AppBarButton.Icon>
+                                </AppBarButton>
+                            </StackPanel>
                         </StackPanel>
                         
                     </Grid>

@@ -30,6 +30,7 @@ namespace WinPhoneClient.ViewModel
         #endregion
         #region Commands
 
+        private RelayCommand _moveToCenterCommand;
         private RelayCommand _showSettingsCommand; 
         #endregion
         #region Constructor
@@ -49,7 +50,9 @@ namespace WinPhoneClient.ViewModel
                 if (string.Compare(_selectedMapItem, value, StringComparison.CurrentCultureIgnoreCase) != 0)
                 {
                     _selectedMapItem = value;
-                    UpdateCenterGeoposition(_selectedMapItem);
+                    var geopoint = FindCenterGeoposition(_selectedMapItem);
+                    if (geopoint != null)
+                        MapCenterGeopoint = geopoint;
                 }
             }
         }
@@ -152,15 +155,12 @@ namespace WinPhoneClient.ViewModel
                 SelectedMapItem = MapItemNamesCollection[0];
         }
 
-        private void UpdateCenterGeoposition(string selectedName)
+        private Geopoint FindCenterGeoposition(string selectedName)
         {
             if (!string.IsNullOrEmpty(selectedName))
             {
                 if (selectedName == "User")
-                {
-                    MapCenterGeopoint = UserPossition;
-                    return;
-                }
+                    return UserPossition;
 
                 var regex = new Regex("'.*'");
                 var match = regex.Match(_selectedMapItem);
@@ -169,9 +169,11 @@ namespace WinPhoneClient.ViewModel
                     var value = match.Value.Replace("'", "");
                     var drone = _model.DroneList.FirstOrDefault(d => d.Id == value);
                     if(drone != null)
-                        MapCenterGeopoint = drone.DroneGeopoint;
+                        return drone.DroneGeopoint;
                 }
             }
+
+            return null;
         }
         #endregion
 
@@ -187,6 +189,20 @@ namespace WinPhoneClient.ViewModel
                         ? Visibility.Visible
                         : Visibility.Collapsed;
                 }));
+            }
+        }
+
+        public RelayCommand MoveToCenterCommand
+        {
+            get
+            {
+                return _moveToCenterCommand ?? (_moveToCenterCommand = new RelayCommand(() =>
+                {
+                    var geopoint = FindCenterGeoposition(SelectedMapItem);
+                    if (geopoint != null)
+                        MapCenterGeopoint = geopoint;
+
+                }, ()=>FindCenterGeoposition(SelectedMapItem) != MapCenterGeopoint));
             }
         }
         #endregion
