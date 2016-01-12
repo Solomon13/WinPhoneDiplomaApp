@@ -3,6 +3,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:ignore="http://www.galasoft.ch/ignore"
+      xmlns:maps="using:WpWinNl.Maps"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:core="using:Microsoft.Xaml.Interactions.Core"
       x:Class="WinPhoneClient.MainPage"
@@ -15,9 +16,7 @@
             <HubSection>
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
-                        <TextBlock x:Uid="Header" Text="Windows Phone client" 
-                                   Style="{ThemeResource TitleTextBlockStyle}" 
-                                   Margin="0,12,0,0"/>
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
                         <TextBlock Text="MAP" Margin="0,-6.5,0,5" 
                                    Style="{ThemeResource HeaderTextBlockStyle}" 
                                    TextWrapping="NoWrap" 
@@ -90,23 +89,27 @@
             <HubSection>
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
-                        <TextBlock x:Uid="Header" Text="Windows Phone client" 
-                                   Style="{ThemeResource TitleTextBlockStyle}" 
-                                   Margin="0,12,0,0"/>
-                        <TextBlock Text="STREAMS" Margin="0,-6.5,0,26.5" 
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="DRONES" Margin="0,-6.5,0,26.5" 
                                    Style="{ThemeResource HeaderTextBlockStyle}" 
                                    TextWrapping="NoWrap" 
                                    CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
                     </StackPanel>
                 </HubSection.Header>
                 <DataTemplate>
-                    <ListView 
+                    <ListView x:Name="DronesListView"
                         AutomationProperties.AutomationId="ItemListViewSection3"
                         AutomationProperties.Name="Items In Group"
                         SelectionMode="None"
                         IsItemClickEnabled="True"
                         ContinuumNavigationTransitionInfo.ExitElementContainer="True"
-                        ItemsSource="{Binding Drones}">
+                        ItemsSource="{Binding Drones}" >
+                        <interactivity:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="ItemClick">
+                                <core:InvokeCommandAction Command="{Binding NavigateToDroneDetailsPageCommand}" 
+                                                           />
+                            </core:EventTriggerBehavior>
+                        </interactivity:Interaction.Behaviors>
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -139,9 +142,7 @@
             <HubSection>
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
-                        <TextBlock x:Uid="Header" Text="Windows Phone client" 
-                                   Style="{ThemeResource TitleTextBlockStyle}" 
-                                   Margin="0,12,0,0"/>
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
                         <TextBlock Text="SETTINGS" Margin="0,-6.5,0,26.5" 
                                    Style="{ThemeResource HeaderTextBlockStyle}" 
                                    TextWrapping="NoWrap" 
@@ -151,32 +152,43 @@
                 <DataTemplate>
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <TextBlock Text="Server IP" 
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Server IP" 
                                    Style="{ThemeResource BaseTextBlockStyle}" 
                                    VerticalAlignment="Center"
                                    Margin="5,0"/>
-                        <TextBox Grid.Row="0" Grid.Column="1"
+                            <TextBox Grid.Row="0" Grid.Column="1"
                                  Margin="5"
                                  InputScope="Number"
-                                 Text="{Binding Ip, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding Ip, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0"
+                            <TextBlock Grid.Row="1" Grid.Column="0"
                                    Text="Port" 
                                    Style="{ThemeResource BaseTextBlockStyle}" 
                                    VerticalAlignment="Center"
                                    Margin="5,0"/>
-                        <TextBox Grid.Row="1" Grid.Column="1"
+                            <TextBox Grid.Row="1" Grid.Column="1"
                                  Margin="5"
                                  InputScope="Number"
-                                 Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding Port, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                        </Grid>
+                        <StackPanel Grid.Row="1"
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center">
+                            <AppBarButton HorizontalAlignment="Center" Icon="Save" Command="{Binding SaveSettingsCommand}"/>
+                        </StackPanel>
                     </Grid>
                 </DataTemplate>
             </HubSection>

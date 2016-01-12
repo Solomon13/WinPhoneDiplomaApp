@@ -1,0 +1,174 @@
+﻿<Page
+    x:Class="WinPhoneClient.DroneDetailsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    DataContext="{Binding DroneDetails, Source={StaticResource Locator}}">
+
+    <Grid x:Name="LayoutRoot">
+        <Grid.Resources>
+            <DataTemplate x:Key="DroneDescriptionTemplate">
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Center">
+                    <Border Margin="5,0">
+                        <Border.Background>
+                            <SolidColorBrush Color="{Binding ItemColor}"/>
+                        </Border.Background>
+                        <Image Width="30" Height="30" Source="{Binding DroneIcon}"/>
+                    </Border>
+
+                    <TextBlock FontSize="18" 
+                                       Text="{Binding DroneDescription}"
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center"/>
+                </StackPanel>
+            </DataTemplate>
+        </Grid.Resources>
+        <Hub>
+            <HubSection>
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,15,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="DETAILS" Margin="0,-6.5,0,5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                        <ContentControl ContentTemplate="{StaticResource DroneDescriptionTemplate}"/>
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" 
+                                BorderThickness="2" 
+                                Margin="0,5">
+                            <Border.BorderBrush>
+                                <SolidColorBrush Color="{Binding ItemColor}"/>
+                            </Border.BorderBrush>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0"
+                                       Grid.Column="0"
+                                       Text="Current task:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="0"
+                                       Grid.Column="1"
+                                       Text="{Binding CurrentTask}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="Possition:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="1"
+                                       Text="{Binding Possition}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       Text="Polution level:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="1"
+                                       Text="{Binding PolutionLevel}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <!--<StackPanel Grid.Row="1"
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center">
+                            <AppBarButton HorizontalAlignment="Center">
+                                <AppBarButton.Icon>
+                                    <BitmapIcon UriSource="Assets/settings.png" Height="20"/>
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+                            <AppBarButton HorizontalAlignment="Center">
+                                <AppBarButton.Icon>
+                                    <BitmapIcon UriSource="Assets/center.png" Height="20"/>
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+                        </StackPanel>-->
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+
+            <HubSection >
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="COMMANDS" Margin="0,-6.5,0,5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                        <ContentControl ContentTemplate="{StaticResource DroneDescriptionTemplate}"/>
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+                        
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+
+            <HubSection >
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="SENSORS" Margin="0,-6.5,0,5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                        <ContentControl ContentTemplate="{StaticResource DroneDescriptionTemplate}"/>
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+            
+            <HubSection>
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="VIDEOS" Margin="0,-6.5,0,5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                        <ContentControl ContentTemplate="{StaticResource DroneDescriptionTemplate}"/>
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+        </Hub>
+    </Grid>
+</Page>

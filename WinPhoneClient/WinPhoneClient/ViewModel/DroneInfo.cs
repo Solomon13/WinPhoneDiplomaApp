@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using Windows.Devices.Geolocation;
 using Windows.UI;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Command;
+using WinPhoneClient.Common;
 using WinPhoneClient.Enums;
 using WinPhoneClient.Model;
+using RelayCommand = GalaSoft.MvvmLight.Command.RelayCommand;
 
 namespace WinPhoneClient.ViewModel
 {
@@ -30,6 +32,7 @@ namespace WinPhoneClient.ViewModel
         #region Commands
         private RelayCommand _detailsTappedCommand;
         private RelayCommand _detailsDoubleTappedCommand;
+        private Geopath _locationsGeopath;
         #endregion
         #region Constructor
         public DroneInfo(Drone drone)
@@ -109,6 +112,16 @@ namespace WinPhoneClient.ViewModel
         {
             get { return DetailsVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
         }
+
+        public Geopath LocationsPath
+        {
+            get { return _locationsGeopath ?? (_locationsGeopath = new Geopath(_droneModel.Locations)); }
+        }
+
+        public double PolutionLevel
+        {
+            get { return _droneModel.PolutionLevel; }
+        }
         #endregion
         #region Command Handlers
 
@@ -131,7 +144,8 @@ namespace WinPhoneClient.ViewModel
             {
                 return _detailsDoubleTappedCommand?? (_detailsDoubleTappedCommand = new RelayCommand(() =>
                 {
-                    //todo Show details page for drone
+                    var rootFrame = Window.Current.Content as Frame;
+                    rootFrame?.Navigate(typeof (DroneDetailsPage), this);
                 }));
             }
         }

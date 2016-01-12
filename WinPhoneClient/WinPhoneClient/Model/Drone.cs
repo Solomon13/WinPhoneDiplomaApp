@@ -1,4 +1,5 @@
-﻿using Windows.Devices.Geolocation;
+﻿using System.Collections.Generic;
+using Windows.Devices.Geolocation;
 using GalaSoft.MvvmLight;
 using WinPhoneClient.Enums;
 
@@ -20,6 +21,10 @@ namespace WinPhoneClient.Model
         public string CurrecntTask { get; set; }
 
         public string Id { get; set; }
+
+        public List<BasicGeoposition> Locations { get; set; } = new List<BasicGeoposition>();
+
+        public double PolutionLevel { get; set; }
         #endregion
     }
 }

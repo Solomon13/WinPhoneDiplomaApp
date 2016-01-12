@@ -1,6 +1,7 @@
 ﻿using Windows.Devices.Geolocation;
 using Windows.Phone.UI.Input;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
@@ -16,14 +17,6 @@ namespace WinPhoneClient
     /// </summary>
     public sealed partial class MainPage
     {
-        private MainViewModel Vm
-        {
-            get
-            {
-                return (MainViewModel)DataContext;
-            }
-        }
-
         public MainPage()
         {
             InitializeComponent();

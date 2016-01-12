@@ -69,8 +69,12 @@
                           Visibility="{Binding PointVisibility}"
                           Fill="{StaticResource DroneBackgroundColor}">
                     </Path>
-                    
                 </Grid>
+            </DataTemplate>
+            <DataTemplate x:Key="ApplicationTitleTemplate">
+                <TextBlock x:Uid="Header" Text="Windows Phone client" 
+                                   Style="{ThemeResource TitleTextBlockStyle}" 
+                                   Margin="0,12,0,0"/>
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

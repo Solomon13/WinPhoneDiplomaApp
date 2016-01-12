@@ -20,6 +20,7 @@ namespace WinPhoneClient
     public sealed partial class App
     {
         private TransitionCollection _transitions;
+        public static MainPage MainPage;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -124,6 +125,7 @@ namespace WinPhoneClient
         /// <param name="e">Details about the navigation event.</param>
         private void RootFrame_FirstNavigated(object sender, NavigationEventArgs e)
         {
+            MainPage = e.Content as MainPage;
             var rootFrame = sender as Frame;
             rootFrame.ContentTransitions = _transitions ?? new TransitionCollection() { new NavigationThemeTransition() };
             rootFrame.Navigated -= RootFrame_FirstNavigated;

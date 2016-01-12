@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Windows.Foundation;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Media;
+using WpWinNl.Utilities;
 
 namespace WinPhoneClient.Helpers
 {
@@ -36,6 +40,18 @@ namespace WinPhoneClient.Helpers
                     }
                 }
             }
+        }
+
+        public static  MapControl GetMainMapControl()
+        {
+            if (App.MainPage != null)
+            {
+                var mapControls = FindVisualChildren<MapControl>(App.MainPage).ToArray();
+                if (mapControls.Any())
+                    return mapControls.FirstOrDefault(m => m.Name == "MainMap");
+            }
+
+            return null;
         }
     }
 }

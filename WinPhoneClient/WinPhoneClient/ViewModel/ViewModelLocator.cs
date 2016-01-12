@@ -33,6 +33,11 @@ namespace WinPhoneClient.ViewModel
             }
         }
 
+        public DroneDetailsViewModel DroneDetails
+        {
+            get { return ServiceLocator.Current.GetInstance<DroneDetailsViewModel>(); }
+        }
+
         /// <summary>
         /// This property can be used to force the application to run with design time data.
         /// </summary>
@@ -48,6 +53,7 @@ namespace WinPhoneClient.ViewModel
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
             SimpleIoc.Default.Register<MainViewModel>();
+            SimpleIoc.Default.Register<DroneDetailsViewModel>();
         }
 
         /// <summary>
