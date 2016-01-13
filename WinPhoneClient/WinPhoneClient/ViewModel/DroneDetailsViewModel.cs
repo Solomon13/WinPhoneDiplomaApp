@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI;
-using Windows.UI.Xaml.Media.Imaging;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 using GalaSoft.MvvmLight;
+using GalaSoft.MvvmLight.Command;
+using WinPhoneClient.Enums;
+using WinPhoneClient.Helpers;
 
 namespace WinPhoneClient.ViewModel
 {
@@ -13,6 +14,23 @@ namespace WinPhoneClient.ViewModel
     {
         #region Fields
 
+        private string _selectedCommand = string.Empty;
+        #endregion
+
+        #region Constructor
+
+        public DroneDetailsViewModel()
+        {
+            if (CommandsList.Any())
+                _selectedCommand = CommandsList.First();
+        }
+        #endregion
+
+        #region Commands
+
+        private RelayCommand _sendCommand;
+        private RelayCommand _openSettingsCommand;
+        private RelayCommand<ItemClickEventArgs> _playVideoCommand;
         #endregion
 
         #region Properties
@@ -24,30 +42,64 @@ namespace WinPhoneClient.ViewModel
             get { return $"{Model.DroneType} - '{Model.Id}'"; }
         }
 
-        public string CurrentTask
+        public List<string> CommandsList
         {
-            get { return Model.Task; }
+            get { return Enum.GetNames(typeof (Commands)).ToList(); }
         }
 
-        public Color ItemColor
+        public string SelectedCommand
         {
-            get { return Model.IconColor; }
+            get { return _selectedCommand; }
+            set { Set(ref _selectedCommand, value); }
+        }
+        #endregion
+
+        #region Command Hanglers
+
+        public RelayCommand SendCommand
+        {
+            get
+            {
+                return _sendCommand ?? (_sendCommand = new RelayCommand(() =>
+                {
+                    //TODO
+                }));
+            }
         }
 
-        public string Possition
+        public RelayCommand OpenSettingsCommand
         {
-            get { return Model.FormatedPossition; }
+            get
+            {
+                return _openSettingsCommand ?? (_openSettingsCommand = new RelayCommand(() =>
+                {
+                    var hub = Utils.GetMainHub();
+                    if (hub != null)
+                    {
+                        var section =
+                            Utils.FindVisualChildren<HubSection>(hub)
+                                .FirstOrDefault(s => s.Name == "SettingsHubSection");
+                        if (section != null)
+                        {
+                            hub.ScrollToSection(section);
+                            var rootFrame = Window.Current.Content as Frame;
+                            rootFrame?.Navigate(typeof (MainPage));
+                        }
+                    }
+                }));
+            }
         }
 
-        public string PolutionLevel
+        public RelayCommand<ItemClickEventArgs> PlayVideoCommand
         {
-            get { return $"{Model.PolutionLevel} %";}
-        }
-
-        public BitmapImage DroneIcon
-        {
-            get { return Model.DroneIcon; }
-        }
+            get
+            {
+                return _playVideoCommand ?? (_playVideoCommand = new RelayCommand<ItemClickEventArgs>((args) =>
+                {
+                    //TODO
+                }));
+            }
+        } 
         #endregion
     }
 }

@@ -53,5 +53,13 @@ namespace WinPhoneClient.Helpers
 
             return null;
         }
+
+        public static Hub GetMainHub()
+        {
+            if (App.MainPage != null)
+                return FindVisualChildren<Hub>(App.MainPage).FirstOrDefault( h => h.Name == "MainHub");
+
+            return null;
+        }
     }
 }

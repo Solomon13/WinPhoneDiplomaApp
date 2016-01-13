@@ -39,7 +39,8 @@ namespace WinPhoneClient.Model
                 DroneGeopoint = new Geopoint(
                 new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1511, Altitude = 120},
                 AltitudeReferenceSystem.Terrain),
-                PolutionLevel = 15
+                PolutionLevel = 15,
+                VideosList = new List<DroneVideo> {new DroneVideo(), new DroneVideo(), new DroneVideo() }
             }
         };
 

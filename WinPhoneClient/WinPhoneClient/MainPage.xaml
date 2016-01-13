@@ -12,8 +12,8 @@
       DataContext="{Binding Main, Source={StaticResource Locator}}">
 
     <Grid>
-        <Hub>
-            <HubSection>
+        <Hub Name="MainHub">
+            <HubSection Name="MapHubSection">
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
                         <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
@@ -86,7 +86,7 @@
                 </DataTemplate>
             </HubSection>
             
-            <HubSection>
+            <HubSection Name="DronesHubSection">
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
                         <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
@@ -139,7 +139,7 @@
                 </DataTemplate>
             </HubSection>
 
-            <HubSection>
+            <HubSection Name="SettingsHubSection">
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
                         <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>

@@ -25,6 +25,10 @@ namespace WinPhoneClient.Model
         public List<BasicGeoposition> Locations { get; set; } = new List<BasicGeoposition>();
 
         public double PolutionLevel { get; set; }
+
+        public List<Sensor> SensorsList { get; set; } = new List<Sensor>(); 
+
+        public List<DroneVideo> VideosList { get; set; } = new List<DroneVideo>(); 
         #endregion
     }
 }

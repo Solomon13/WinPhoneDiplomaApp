@@ -122,6 +122,11 @@ namespace WinPhoneClient.ViewModel
         {
             get { return _droneModel.PolutionLevel; }
         }
+
+        public List<DroneVideo> VideoList
+        {
+            get { return _droneModel.VideosList; }
+        } 
         #endregion
         #region Command Handlers
 
