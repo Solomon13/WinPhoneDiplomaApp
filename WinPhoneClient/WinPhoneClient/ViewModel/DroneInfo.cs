@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Devices.Geolocation;
+using Windows.Foundation;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using GalaSoft.MvvmLight;
-using WinPhoneClient.Common;
 using WinPhoneClient.Enums;
 using WinPhoneClient.Model;
 using RelayCommand = GalaSoft.MvvmLight.Command.RelayCommand;
@@ -28,11 +24,11 @@ namespace WinPhoneClient.ViewModel
         }; 
         private readonly Drone _droneModel;
         private Visibility _detailsVisibility = Visibility.Collapsed;
+        private bool _isSelected;
         #endregion
         #region Commands
         private RelayCommand _detailsTappedCommand;
         private RelayCommand _detailsDoubleTappedCommand;
-        private Geopath _locationsGeopath;
         #endregion
         #region Constructor
         public DroneInfo(Drone drone)
@@ -45,6 +41,20 @@ namespace WinPhoneClient.ViewModel
 
         #region Properties
 
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set
+            {
+                Set(ref _isSelected, value);
+                RaisePropertyChanged(nameof(DetailsVisibility));
+                RaisePropertyChanged(nameof(BorderColor));
+            }
+        }
+        public Drone Model
+        {
+            get { return _droneModel; }
+        }
         public string Id
         {
             get { return _droneModel.Id; }
@@ -87,6 +97,11 @@ namespace WinPhoneClient.ViewModel
             }
         }
 
+        public Color BorderColor
+        {
+            get { return IsSelected ? Colors.Red : IconColor; }
+        }
+
         public Geopoint DroneGeopoint
         {
             get { return _droneModel.DroneGeopoint; }
@@ -100,22 +115,7 @@ namespace WinPhoneClient.ViewModel
 
         public Visibility DetailsVisibility
         {
-            get { return _detailsVisibility; }
-            set
-            {
-                Set(ref _detailsVisibility, value);
-                RaisePropertyChanged(nameof(PointVisibility));
-            }
-        }
-
-        public Visibility PointVisibility
-        {
-            get { return DetailsVisibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; }
-        }
-
-        public Geopath LocationsPath
-        {
-            get { return _locationsGeopath ?? (_locationsGeopath = new Geopath(_droneModel.Locations)); }
+            get { return IsSelected ? Visibility.Visible : Visibility.Collapsed; }
         }
 
         public double PolutionLevel
@@ -126,7 +126,12 @@ namespace WinPhoneClient.ViewModel
         public List<DroneVideo> VideoList
         {
             get { return _droneModel.VideosList; }
-        } 
+        }
+
+        public Point Anchor
+        {
+            get { return new Point(0.5, 1); }
+        }
         #endregion
         #region Command Handlers
 
@@ -136,9 +141,8 @@ namespace WinPhoneClient.ViewModel
             {
                 return _detailsTappedCommand ?? (_detailsTappedCommand = new RelayCommand(() =>
                 {
-                    DetailsVisibility = DetailsVisibility == Visibility.Collapsed
-                        ? Visibility.Visible
-                        : Visibility.Collapsed;
+                    var mainViewModel = Application.Current.Resources["Main"] as MainViewModel;
+                    mainViewModel?.SelectDroneOnMapCommand.Execute(new KeyValuePair<string, bool>(Id, !IsSelected));
                 }));
             }
         }

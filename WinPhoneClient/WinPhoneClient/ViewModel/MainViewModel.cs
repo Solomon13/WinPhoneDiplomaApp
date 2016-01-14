@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -30,6 +31,7 @@ namespace WinPhoneClient.ViewModel
         private string _selectedMapItem = "";
         private int _port;
         private string _serverAddress;
+        private bool _showRoutes = true;
         #endregion
         #region Commands
 
@@ -37,16 +39,19 @@ namespace WinPhoneClient.ViewModel
         private RelayCommand _showSettingsCommand;
         private RelayCommand<ItemClickEventArgs> _navigateToDroneDetailsPageCommand;
         private RelayCommand _saveSettingsCommand;
+        private RelayCommand<KeyValuePair<string, bool>> _selectDroneOnMapCommand;
         #endregion
         #region Constructor
         public MainViewModel()
         {
             foreach (var drone in _model.DroneList)
                 Drones.Add(new DroneInfo(drone));
+
             _port = _model.Settings.Port;
             _serverAddress = _model.Settings.IpAdress;
             UpdateCurrentLocation();
             CreateMapItemNamesList();
+            CreateRoutesColection();
         }
         #endregion
         #region Properties
@@ -65,8 +70,21 @@ namespace WinPhoneClient.ViewModel
             }
         }
         public ObservableCollection<string> MapItemNamesCollection { get; } = new ObservableCollection<string>();
-
         public ObservableCollection<DroneInfo> Drones { get; } = new ObservableCollection<DroneInfo>();
+        public ObservableCollection<DroneRoute> DroneRoutes { get; } = new ObservableCollection<DroneRoute>();
+
+        public bool ShowRoutes
+        {
+            get { return _showRoutes; }
+            set
+            {
+                Set(ref _showRoutes, value);
+                if(value)
+                    CreateRoutesColection();
+                else
+                    DroneRoutes.Clear();
+            }
+        }
 
         public Visibility UserPointVisibility
         {
@@ -178,10 +196,53 @@ namespace WinPhoneClient.ViewModel
 
             return null;
         }
+
+        public void UpdateDroneRoute(string droneId, bool bIsSelected = false)
+        {
+            if (!string.IsNullOrEmpty(droneId))
+            {
+                var droneInfo = Drones.FirstOrDefault(d => d.Id == droneId);
+                if (droneInfo != null)
+                {
+                    var route = GetRoute(droneId);
+                    if (route != null)
+                    {
+                        DroneRoutes.Remove(route);
+                        DroneRoutes.Add(new DroneRoute(droneId, droneInfo.Model.Locations, droneInfo.IconColor) {IsSelected = bIsSelected});
+                    }
+                }
+            }
+        }
+
+        public void RemoveDroneRoute(string droneId)
+        {
+            if (!string.IsNullOrEmpty(droneId) )
+            {
+                var route = GetRoute(droneId);
+                if (route != null)
+                    DroneRoutes.Remove(route);
+            }
+        }
+
+        public DroneRoute GetRoute(string droneId)
+        {
+            if (!string.IsNullOrEmpty(droneId))
+                return DroneRoutes.FirstOrDefault(r => r.DroneId == droneId);
+            return null;
+        }
+
+        private void CreateRoutesColection()
+        {
+            DroneRoutes.Clear();
+            foreach (var droneInfo in Drones)
+            {
+                if (droneInfo.Model.Locations != null && droneInfo.Model.Locations.Any())
+                    DroneRoutes.Add(new DroneRoute(droneInfo.Id, droneInfo.Model.Locations, droneInfo.IconColor));
+            }
+        }
         #endregion
 
         #region Command Handlers
-
         public RelayCommand ShowSettingsCommand
         {
             get
@@ -254,6 +315,21 @@ namespace WinPhoneClient.ViewModel
 
                     return Ip != _model.Settings.IpAdress || (Port != _model.Settings.Port && Port >= 1024 && Port <= Int16.MaxValue * 2);
                 }));
+            }
+        }
+
+        public RelayCommand<KeyValuePair<string,bool>> SelectDroneOnMapCommand
+        {
+            get
+            {
+                return _selectDroneOnMapCommand ??
+                       (_selectDroneOnMapCommand = new RelayCommand<KeyValuePair<string, bool>>(arg =>
+                       {
+                           var droneInfo = Drones.FirstOrDefault(d => d.Id == arg.Key);
+                           if(droneInfo != null)
+                               droneInfo.IsSelected = arg.Value;
+                           UpdateDroneRoute(arg.Key, arg.Value);
+                       }));
             }
         }
         #endregion

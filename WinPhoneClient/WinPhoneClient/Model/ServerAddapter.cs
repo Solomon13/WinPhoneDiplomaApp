@@ -19,9 +19,9 @@ namespace WinPhoneClient.Model
                 AltitudeReferenceSystem.Terrain),
                 Locations = new List<BasicGeoposition>
                 {
-                    new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1311 },
-                    new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1411 },
-                    new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1511 },
+                    new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1311 },
+                    new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1411 },
+                    new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1511 },
                 },
                 PolutionLevel = 5
             },
@@ -31,6 +31,12 @@ namespace WinPhoneClient.Model
                 DroneGeopoint = new Geopoint(
                 new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1411, Altitude = 120},
                 AltitudeReferenceSystem.Terrain),
+                Locations = new List<BasicGeoposition>
+                {
+                    new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1311 },
+                    new BasicGeoposition {Latitude = 47.6886, Longitude = -122.1411 },
+                    new BasicGeoposition {Latitude = 47.6986, Longitude = -122.1511 },
+                },
                 PolutionLevel = 10
             },
             new Drone (DroneType.Quadrocopter){

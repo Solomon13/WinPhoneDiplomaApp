@@ -1,15 +1,12 @@
 ﻿<Page xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps"  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:ignore="http://www.galasoft.ch/ignore"
-      xmlns:maps="using:WpWinNl.Maps"
+      xmlns:mapbinding="using:WpWinNl.Maps"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+      xmlns:common="using:WinPhoneClient.Common"
       x:Class="WinPhoneClient.MainPage"
-      mc:Ignorable="d ignore"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-      DataContext="{Binding Main, Source={StaticResource Locator}}">
+      DataContext="{StaticResource Main}">
 
     <Grid>
         <Hub Name="MainHub">
@@ -37,21 +34,36 @@
                             <ContentControl x:Name="UserPointPossition"
                                             ContentTemplate="{StaticResource UserPushpinControl}" 
                                             Maps:MapControl.Location="{Binding UserPossition}" 
-                                            Visibility="{Binding UserPointVisibility}"/>
+                                            Visibility="{Binding UserPointVisibility}"
+                                            Maps:MapControl.NormalizedAnchorPoint="0.5,1"/>
                             <Maps:MapItemsControl
                                 x:Name="DronePoints"
                                 ItemsSource="{Binding Drones}"
                                 ItemTemplate="{StaticResource DronePushpinControl}"/>
+                            <interactivity:Interaction.Behaviors>
+                                <mapbinding:MapShapeDrawBehavior LayerName="Lines" 
+                                                                 ItemsSource="{Binding DroneRoutes}" 
+                                                                 PathPropertyName="Route" 
+                                                                 ShapeColorPropertyName="RouteColor">
+                                    <mapbinding:MapShapeDrawBehavior.EventToCommandMappers>
+                                        <mapbinding:EventToCommandMapper EventName="MapTapped" CommandName="SelectCommand"/>
+                                    </mapbinding:MapShapeDrawBehavior.EventToCommandMappers>
+                                    <mapbinding:MapShapeDrawBehavior.ShapeDrawer>
+                                        <mapbinding:MapPolylineDrawer/>
+                                    </mapbinding:MapShapeDrawBehavior.ShapeDrawer>
+                                </mapbinding:MapShapeDrawBehavior>
+                            </interactivity:Interaction.Behaviors>
                         </Maps:MapControl>
                         <StackPanel Grid.Row="1">
                             <Grid Visibility="{Binding SettingsVisibility}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*" MinWidth="200"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="Center item:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="18"/>
@@ -67,6 +79,17 @@
                                         Minimum="1" 
                                         Maximum="20"
                                         Value="{Binding ZoomLavel, Mode=TwoWay}"/>
+
+                                <TextBlock Grid.Row="2" 
+                                           Grid.Column="0" 
+                                           Text="Show routes:" 
+                                           VerticalAlignment="Center" 
+                                           FontSize="18"/>
+                                <ToggleSwitch Grid.Row="2" 
+                                              Grid.Column="1"
+                                              IsOn="{Binding ShowRoutes, Mode=TwoWay}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
                             </Grid>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <AppBarButton HorizontalAlignment="Center" Command="{Binding ShowSettingsCommand}">

@@ -1,27 +1,30 @@
 ﻿<Application x:Class="WinPhoneClient.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:WinPhoneClient.ViewModel"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
-             xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-             xmlns:core="using:Microsoft.Xaml.Interactions.Core"
-             mc:Ignorable="d">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WinPhoneClient"
+    xmlns:viewModel="using:WinPhoneClient.ViewModel"
+    xmlns:maps="using:Windows.UI.Xaml.Controls.Maps"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:maps1="using:WpWinNl.Maps"
+    mc:Ignorable="d">
 
     <Application.Resources>
-    	<ResourceDictionary>
-    		<ResourceDictionary.MergedDictionaries>
-    			<ResourceDictionary Source="Styles/Colors.xaml"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/Colors.xaml"/>
                 <ResourceDictionary Source="Styles/TextStyles.xaml"/>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml"/>
                 <!--Add other global resource dictionaries here-->
-    		</ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary.MergedDictionaries>
 
+            <viewModel:MainViewModel x:Key="Main"/>
+            <viewModel:DroneDetailsViewModel x:Key="DroneDetails"/>
             <SolidColorBrush x:Key="SettingsPopupBackgroundColor" Color="Black" Opacity="0.8" />
-    		<!--Global View Model Locator-->
-    		<vm:ViewModelLocator x:Key="Locator"
-    			d:IsDataSource="True" />
+            <!--Global View Model Locator-->
+            <viewModel:ViewModelLocator x:Key="Locator" d:IsDataSource="True" />
             <DataTemplate x:Key="UserPushpinControl">
                 <Image 
                     Source="Assets/user.png" 
@@ -32,9 +35,10 @@
             <DataTemplate x:Key="DronePushpinControl">
                 <Grid MaxWidth="150"   
                       maps:MapControl.Location="{Binding DroneGeopoint}"
-                      maps:MapControl.NormalizedAnchorPoint="0.5,1">
+                      maps:MapControl.NormalizedAnchorPoint="{Binding Anchor}">
                     <Grid.Resources>
                         <SolidColorBrush Color="{Binding IconColor}" Opacity="0.8" x:Key="DroneBackgroundColor"/>
+                        <SolidColorBrush Color="{Binding BorderColor}" Opacity="0.8" x:Key="DroneBorderBrush"/>
                     </Grid.Resources>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -48,7 +52,9 @@
                             <core:InvokeCommandAction Command="{Binding Path=DetailsDoubleTappedCommand}"/>
                         </core:EventTriggerBehavior>
                     </interactivity:Interaction.Behaviors>
-                    <Border CornerRadius="3" Background="{StaticResource DroneBackgroundColor}">
+                    <Border CornerRadius="3" Background="{StaticResource DroneBackgroundColor}"
+                            BorderBrush="{StaticResource DroneBorderBrush}"
+                            BorderThickness="2">
                         <StackPanel Orientation="Horizontal">
                             <Image Height="24" Width="24" Margin="5" Source="{Binding DroneIcon}"/>
                             <StackPanel Visibility="{Binding Path=DetailsVisibility}">
@@ -66,8 +72,7 @@
                           Stretch="Fill" 
                           UseLayoutRounding="False" 
                           Width="9.702"
-                          Visibility="{Binding PointVisibility}"
-                          Fill="{StaticResource DroneBackgroundColor}">
+                          Fill="{StaticResource DroneBorderBrush}">
                     </Path>
                 </Grid>
             </DataTemplate>
@@ -76,7 +81,7 @@
                                    Style="{ThemeResource TitleTextBlockStyle}" 
                                    Margin="0,12,0,0"/>
             </DataTemplate>
+
         </ResourceDictionary>
     </Application.Resources>
-    
 </Application>
