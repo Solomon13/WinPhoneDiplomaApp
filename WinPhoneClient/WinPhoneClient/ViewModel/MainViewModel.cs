@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Windows.Devices.Geolocation;
 using Windows.Networking;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
+using GalaSoft.MvvmLight.Messaging;
+using GalaSoft.MvvmLight.Threading;
+using WinPhoneClient.Common;
 using WinPhoneClient.Model;
+using RelayCommand = GalaSoft.MvvmLight.Command.RelayCommand;
 
 namespace WinPhoneClient.ViewModel
 {
@@ -52,6 +58,31 @@ namespace WinPhoneClient.ViewModel
             UpdateCurrentLocation();
             CreateMapItemNamesList();
             CreateRoutesColection();
+
+            _model.StartServerListening();
+
+            #region Message Handlers
+            Messenger.Default.Register<DronePossitionChangedMessage>(this,async arg =>
+            {
+                if (arg != null)
+                {
+                    var droneInfo = Drones.FirstOrDefault(d => d.Model == arg.ChangedDrone);
+                    if (droneInfo != null)
+                    {
+                        await AnimatedChangePossitionAsync(droneInfo, droneInfo.DroneGeopoint, arg.NewDronePosition);
+                        await DispatcherHelper.UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                        {
+                            if (arg.NewRoutePoints == null)
+                                arg.ChangedDrone.Locations.Add(arg.NewDronePosition.Position);
+                            else
+                                arg.ChangedDrone.Locations.AddRange(arg.NewRoutePoints);
+                            UpdateDroneRoute(droneInfo.Id, droneInfo.IsSelected);
+                        });
+                        
+                    }
+                }
+            });
+            #endregion
         }
         #endregion
         #region Properties
@@ -199,7 +230,7 @@ namespace WinPhoneClient.ViewModel
 
         public void UpdateDroneRoute(string droneId, bool bIsSelected = false)
         {
-            if (!string.IsNullOrEmpty(droneId))
+            if (!string.IsNullOrEmpty(droneId) && ShowRoutes)
             {
                 var droneInfo = Drones.FirstOrDefault(d => d.Id == droneId);
                 if (droneInfo != null)
@@ -207,8 +238,8 @@ namespace WinPhoneClient.ViewModel
                     var route = GetRoute(droneId);
                     if (route != null)
                     {
-                        DroneRoutes.Remove(route);
                         DroneRoutes.Add(new DroneRoute(droneId, droneInfo.Model.Locations, droneInfo.IconColor) {IsSelected = bIsSelected});
+                        DroneRoutes.Remove(route);
                     }
                 }
             }
@@ -216,7 +247,7 @@ namespace WinPhoneClient.ViewModel
 
         public void RemoveDroneRoute(string droneId)
         {
-            if (!string.IsNullOrEmpty(droneId) )
+            if (!string.IsNullOrEmpty(droneId) && ShowRoutes)
             {
                 var route = GetRoute(droneId);
                 if (route != null)
@@ -239,6 +270,27 @@ namespace WinPhoneClient.ViewModel
                 if (droneInfo.Model.Locations != null && droneInfo.Model.Locations.Any())
                     DroneRoutes.Add(new DroneRoute(droneInfo.Id, droneInfo.Model.Locations, droneInfo.IconColor));
             }
+        }
+
+        private async Task AnimatedChangePossitionAsync(DroneInfo drone, Geopoint startPosition, Geopoint endPossition, int stepCount = 25)
+        {
+            if (drone == null || startPosition == null || endPossition == null || stepCount <= 0)
+                return;
+  
+            await Task.Factory.StartNew(async () =>
+            {
+                var startPoint = startPosition.Position;
+                var endPoint = endPossition.Position;
+                var longitudeStep = (endPoint.Longitude - startPoint.Longitude) / stepCount;
+                var latitudeStep = (endPoint.Latitude - startPoint.Latitude) / stepCount;
+                for (int step = 0; step < stepCount; step++)
+                {
+                    startPoint.Longitude += longitudeStep;
+                    startPoint.Latitude += latitudeStep;
+                    await DispatcherHelper.UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () => drone.DroneGeopoint = new Geopoint(startPoint));
+                }
+            }
+            );
         }
         #endregion
 

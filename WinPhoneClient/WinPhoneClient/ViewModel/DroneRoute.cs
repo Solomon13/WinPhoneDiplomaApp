@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Devices.Geolocation;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -46,21 +43,6 @@ namespace WinPhoneClient.ViewModel
                 {
                     var mainViewModel = Application.Current.Resources["Main"] as MainViewModel;
                     mainViewModel?.SelectDroneOnMapCommand.Execute(new KeyValuePair<string, bool>(DroneId, !IsSelected));
-                    //if (mainViewModel != null)
-                    //{
-                    //    if (IsSelected)
-                    //    {
-                    //        var selectedRoutes = mainViewModel.DroneRoutes.Where(r => r.IsSelected).ToList();
-                    //        if (selectedRoutes.Contains(this))
-                    //            selectedRoutes.Remove(this);
-                    //        foreach (var selectedRoute in selectedRoutes)
-                    //            mainViewModel.UpdateDroneRoute(selectedRoute.DroneId);
-                    //    }
-
-                    //    if (mainViewModel.DroneRoutes.Contains(this))
-                    //        mainViewModel.DroneRoutes.Remove(this);
-                    //    mainViewModel.DroneRoutes.Add(this);
-                    //}
                 }));
             }
         }

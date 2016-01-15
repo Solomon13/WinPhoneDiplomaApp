@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Windows.Devices.Geolocation;
 using GalaSoft.MvvmLight;
+using WinPhoneClient.Common;
 using WinPhoneClient.Enums;
 
 namespace WinPhoneClient.Model
@@ -22,7 +23,7 @@ namespace WinPhoneClient.Model
 
         public string Id { get; set; }
 
-        public List<BasicGeoposition> Locations { get; set; } = new List<BasicGeoposition>();
+        public LimitedQueue<BasicGeoposition> Locations { get; set; } = new LimitedQueue<BasicGeoposition>();
 
         public double PolutionLevel { get; set; }
 
