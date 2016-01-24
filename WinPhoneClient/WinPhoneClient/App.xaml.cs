@@ -68,7 +68,9 @@ namespace WinPhoneClient
 
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
-                    // TODO: Load state from previously suspended application
+                    //var viewModel = rootFrame.DataContext as MainViewModel;
+                    //if (viewModel != null)
+                    //    viewModel.LoadLocalSttings();
                 }
 
                 // Place the frame in the current Window
@@ -127,6 +129,11 @@ namespace WinPhoneClient
         {
             MainPage = e.Content as MainPage;
             var rootFrame = sender as Frame;
+
+            var viewModel = MainPage.DataContext as MainViewModel;
+            viewModel?.LoadLocalSttings();
+            viewModel?.NavigateToSettingsHub();
+
             rootFrame.ContentTransitions = _transitions ?? new TransitionCollection() { new NavigationThemeTransition() };
             rootFrame.Navigated -= RootFrame_FirstNavigated;
 
@@ -153,6 +160,11 @@ namespace WinPhoneClient
         /// <param name="e">Details about the suspend request.</param>
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
+            if (MainPage != null)
+            {
+                var viewModel = MainPage.DataContext as MainViewModel;
+                viewModel?.SaveLocalSettings();
+            }
             var deferral = e.SuspendingOperation.GetDeferral();
 
             // TODO: Save application state and stop any background activity

@@ -10,6 +10,74 @@
 
     <Grid>
         <Hub Name="MainHub">
+            <HubSection Name="SettingsHubSection">
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="SETTINGS" Margin="0,-6.5,0,26.5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Server host" 
+                                   Style="{ThemeResource BaseTextBlockStyle}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                            <TextBox Grid.Row="0" Grid.Column="1"
+                                 Margin="5"
+                                 Text="{Binding Host, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                   Text="User login" 
+                                   Style="{ThemeResource BaseTextBlockStyle}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                            <TextBox Grid.Row="1" Grid.Column="1"
+                                 Margin="5"
+                                 InputScope="EmailSmtpAddress"
+                                 Text="{Binding UserLogin, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                   Text="User password" 
+                                   Style="{ThemeResource BaseTextBlockStyle}" 
+                                   VerticalAlignment="Center"
+                                   Margin="5,0"/>
+                            <PasswordBox Grid.Row="2" Grid.Column="1"
+                                 Margin="5"
+                                 Password="{Binding UserPassword, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                        </Grid>
+                        <StackPanel Grid.Row="1"
+                            Orientation="Horizontal" 
+                            HorizontalAlignment="Center">
+                            <AppBarButton HorizontalAlignment="Center" Icon="Save" Command="{Binding SaveSettingsCommand}"/>
+                            <AppBarButton HorizontalAlignment="Center" Command="{Binding ConnectToServerCommand}">
+                                <AppBarButton.Icon>
+                                    <BitmapIcon UriSource="Assets/connect.png" Height="20"/>
+                                </AppBarButton.Icon>
+                            </AppBarButton>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+            
             <HubSection Name="MapHubSection">
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
@@ -108,7 +176,7 @@
                     </Grid>
                 </DataTemplate>
             </HubSection>
-            
+
             <HubSection Name="DronesHubSection">
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
@@ -159,60 +227,6 @@
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                </DataTemplate>
-            </HubSection>
-
-            <HubSection Name="SettingsHubSection">
-                <HubSection.Header>
-                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
-                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
-                        <TextBlock Text="SETTINGS" Margin="0,-6.5,0,26.5" 
-                                   Style="{ThemeResource HeaderTextBlockStyle}" 
-                                   TextWrapping="NoWrap" 
-                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
-                    </StackPanel>
-                </HubSection.Header>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <TextBlock Text="Server IP" 
-                                   Style="{ThemeResource BaseTextBlockStyle}" 
-                                   VerticalAlignment="Center"
-                                   Margin="5,0"/>
-                            <TextBox Grid.Row="0" Grid.Column="1"
-                                 Margin="5"
-                                 InputScope="Number"
-                                 Text="{Binding Ip, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-
-                            <TextBlock Grid.Row="1" Grid.Column="0"
-                                   Text="Port" 
-                                   Style="{ThemeResource BaseTextBlockStyle}" 
-                                   VerticalAlignment="Center"
-                                   Margin="5,0"/>
-                            <TextBox Grid.Row="1" Grid.Column="1"
-                                 Margin="5"
-                                 InputScope="Number"
-                                 Text="{Binding Port, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-                        </Grid>
-                        <StackPanel Grid.Row="1"
-                            Orientation="Horizontal" 
-                            HorizontalAlignment="Center">
-                            <AppBarButton HorizontalAlignment="Center" Icon="Save" Command="{Binding SaveSettingsCommand}"/>
-                        </StackPanel>
-                    </Grid>
                 </DataTemplate>
             </HubSection>
         </Hub>

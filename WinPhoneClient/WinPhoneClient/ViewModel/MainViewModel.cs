@@ -5,15 +5,21 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Devices.Geolocation;
+using Windows.Foundation;
 using Windows.Networking;
+using Windows.Storage;
 using Windows.UI.Core;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
+using WinPhoneClient.CommandExecuter;
 using WinPhoneClient.Common;
+using WinPhoneClient.Helpers;
+using WinPhoneClient.JSON;
 using WinPhoneClient.Model;
 using RelayCommand = GalaSoft.MvvmLight.Command.RelayCommand;
 
@@ -35,8 +41,9 @@ namespace WinPhoneClient.ViewModel
         private Visibility _userPointVisibility = Visibility.Collapsed;
         private Visibility _settingsVisibility = Visibility.Collapsed;
         private string _selectedMapItem = "";
-        private int _port;
-        private string _serverAddress;
+        private string _serverHost;
+        private string _userLogin;
+        private string _userPassword;
         private bool _showRoutes = true;
         #endregion
         #region Commands
@@ -46,6 +53,7 @@ namespace WinPhoneClient.ViewModel
         private RelayCommand<ItemClickEventArgs> _navigateToDroneDetailsPageCommand;
         private RelayCommand _saveSettingsCommand;
         private RelayCommand<KeyValuePair<string, bool>> _selectDroneOnMapCommand;
+        private RelayCommand _connectToServerCommand;
         #endregion
         #region Constructor
         public MainViewModel()
@@ -53,13 +61,14 @@ namespace WinPhoneClient.ViewModel
             foreach (var drone in _model.DroneList)
                 Drones.Add(new DroneInfo(drone));
 
-            _port = _model.Settings.Port;
-            _serverAddress = _model.Settings.IpAdress;
-            UpdateCurrentLocation();
-            CreateMapItemNamesList();
-            CreateRoutesColection();
+            _serverHost = _model.Settings.Host;
+            _userLogin = _model.Settings.Login;
+            _userPassword = _model.Settings.Password;
+            //UpdateCurrentLocation();
+            //CreateMapItemNamesList();
+            //CreateRoutesColection();
 
-            _model.StartServerListening();
+            //_model.StartServerListening();
 
             #region Message Handlers
             Messenger.Default.Register<DronePossitionChangedMessage>(this,async arg =>
@@ -86,6 +95,30 @@ namespace WinPhoneClient.ViewModel
         }
         #endregion
         #region Properties
+
+        public ServerAddapter Model
+        {
+            get { return _model; }
+        }
+        public string UserLogin
+        {
+            get { return _userLogin; }
+            set
+            {
+                Set(ref _userLogin, value);
+                RaiseCanEecuteCommandSettingsTab();
+            }
+        }
+
+        public string UserPassword
+        {
+            get { return _userPassword; }
+            set
+            {
+                Set(ref _userPassword, value);
+                RaiseCanEecuteCommandSettingsTab();
+            }
+        }
         public string SelectedMapItem
         {
             get { return _selectedMapItem; }
@@ -157,23 +190,13 @@ namespace WinPhoneClient.ViewModel
             }
         }
 
-        public string Ip
+        public string Host
         {
-            get { return _serverAddress; }
+            get { return _serverHost; }
             set
             {
-                Set(ref _serverAddress, value);
-                SaveSettingsCommand.RaiseCanExecuteChanged();
-            }
-        }
-
-        public int Port
-        {
-            get { return _port; }
-            set
-            {
-                Set(ref _port, value);
-                SaveSettingsCommand.RaiseCanExecuteChanged();
+                Set(ref _serverHost, value);
+                RaiseCanEecuteCommandSettingsTab();
             }
         }
 
@@ -185,6 +208,33 @@ namespace WinPhoneClient.ViewModel
         #endregion
 
         #region Methods
+
+        public void SaveLocalSettings()
+        {
+            ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Host)] = Model.Settings.Host;
+            ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Login)] = Model.Settings.Login;
+            ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Password)] = Model.Settings.Password;
+        }
+
+        public void LoadLocalSttings()
+        {
+            Host = ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Host)]?.ToString();
+            UserLogin = ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Login)]?.ToString();
+            UserPassword = ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Password)]?.ToString();
+
+            if (string.IsNullOrEmpty(Host))
+                Host = Settings.DefaultHost;
+            if (string.IsNullOrEmpty(UserLogin))
+                UserLogin = Settings.DefaultUserName;
+            if (string.IsNullOrEmpty(UserPassword))
+                UserPassword = Settings.DefaultPassword;
+            SaveSettingsCommand.Execute(null);
+        }
+        private void RaiseCanEecuteCommandSettingsTab()
+        {
+            SaveSettingsCommand.RaiseCanExecuteChanged();
+            ConnectToServerCommand.RaiseCanExecuteChanged();
+        }
         private async void UpdateCurrentLocation()
         {   
             UserPointVisibility = Visibility.Collapsed;
@@ -292,9 +342,52 @@ namespace WinPhoneClient.ViewModel
             }
             );
         }
+
+        public void NavigateToSettingsHub()
+        {
+            var mainHub = Utils.GetMainHub();
+            if (mainHub != null)
+            {
+                var section = Utils.FindVisualChildren<HubSection>(mainHub).FirstOrDefault(s => s.Name == "SettingsHubSection");
+                if (section != null)
+                    mainHub.ScrollToSection(section);
+            }
+        }
         #endregion
 
         #region Command Handlers
+
+        public RelayCommand ConnectToServerCommand
+        {
+            get
+            {
+                return _connectToServerCommand ?? (_connectToServerCommand = new RelayCommand(async () =>
+                {
+                    SaveSettingsCommand.Execute(null);
+                    var token = await _model.ConnectToServerAsync(new ConnectToServerCommandExecuter(
+                        Host, 
+                        new TokenRequestJson(UserLogin, UserPassword)));
+                    if (token == null)
+                    {
+                        IAsyncOperation<IUICommand> dialogTask = null;
+                        var messageBox = new MessageDialog($"Can't connect to server {Host}");
+                        messageBox.Commands.Add(new UICommand("Try again", command => ConnectToServerCommand.Execute(null)));
+                        messageBox.Commands.Add(new UICommand("Cancel", command => dialogTask?.Cancel()));
+                        dialogTask = messageBox.ShowAsync();
+                        try
+                        {
+                            await dialogTask;
+                        }
+                        catch (TaskCanceledException)
+                        {
+                        }
+                    }
+                    var drone = Model.GetDroneByIdAsync(new GetDroneInfoCommandExecuter(Model.Settings.Host, 1, Model.Token.FormatedToken));
+                    
+                    RaiseCanEecuteCommandSettingsTab();
+                }, () => SaveSettingsCommand.CanExecute(null)));
+            }
+        }
         public RelayCommand ShowSettingsCommand
         {
             get
@@ -351,22 +444,12 @@ namespace WinPhoneClient.ViewModel
             {
                 return _saveSettingsCommand ?? (_saveSettingsCommand = new RelayCommand(() =>
                 {
-                    _model.Settings.IpAdress = Ip;
-                    _model.Settings.Port = Port;
-                    SaveSettingsCommand.RaiseCanExecuteChanged();
-                }, () =>
-                {
-                    try
-                    {
-                        var ip = new HostName(Ip);
-                    }
-                    catch (Exception)
-                    {
-                        return false;
-                    }
-
-                    return Ip != _model.Settings.IpAdress || (Port != _model.Settings.Port && Port >= 1024 && Port <= Int16.MaxValue * 2);
-                }));
+                    _model.Settings.Host = Host;
+                    _model.Settings.Login = UserLogin;
+                    _model.Settings.Password = UserPassword;
+                    RaiseCanEecuteCommandSettingsTab();
+                }, () => !string.IsNullOrEmpty(Host) && !string.IsNullOrEmpty(UserLogin) && !string.IsNullOrEmpty(UserPassword) &&
+                (_model.Settings.Host != Host || _model.Settings.Login != UserLogin || _model.Settings.Password != UserPassword|| Model.Token == null)));
             }
         }
 

@@ -1,62 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Data.Json;
 using Windows.Devices.Geolocation;
 using GalaSoft.MvvmLight.Messaging;
+using WinPhoneClient.CommandExecuter;
 using WinPhoneClient.Common;
-using WinPhoneClient.Enums;
-using WinPhoneClient.ViewModel;
+using WinPhoneClient.JSON;
 
 namespace WinPhoneClient.Model
 {
-    class ServerAddapter
+    public class ServerAddapter
     {
+        private TokenResponceJson _token;
         private Task _workingTask;
         private CancellationTokenSource _cancellationToken;
         private Settings _settings = new Settings();
-        private List<Drone> _dronesList = new List<Drone>
-        {
-            new Drone (DroneType.Uterus){
-                Id = "1",
-                CurrecntTask = "Uterus test",
-                DroneGeopoint = new Geopoint(
-                new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1311, Altitude = 120},
-                AltitudeReferenceSystem.Terrain),
-                Locations = new LimitedQueue<BasicGeoposition>
-                {
-                    new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1311 },
-                    new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1411 },
-                    new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1511 },
-                },
-                PolutionLevel = 5
-            },
-            new Drone (DroneType.Tank){
-                Id="2",
-                CurrecntTask = "Tank test",
-                DroneGeopoint = new Geopoint(
-                new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1411, Altitude = 120},
-                AltitudeReferenceSystem.Terrain),
-                Locations = new LimitedQueue<BasicGeoposition>
-                {
-                    new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1411 },
-                    new BasicGeoposition {Latitude = 47.6886, Longitude = -122.1411 },
-                    new BasicGeoposition {Latitude = 47.6986, Longitude = -122.1511 },
-                },
-                PolutionLevel = 10
-            },
-            new Drone (DroneType.Quadrocopter){
-                Id="3",
-                CurrecntTask = "Quadrocopter test",
-                DroneGeopoint = new Geopoint(
-                new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1511, Altitude = 120},
-                AltitudeReferenceSystem.Terrain),
-                PolutionLevel = 15,
-                VideosList = new List<DroneVideo> {new DroneVideo(), new DroneVideo(), new DroneVideo() }
-            }
-        };
+        private List<Drone> _dronesList = new List<Drone>()
+        //{
+        //    new Drone (DroneType.Uterus){
+        //        Id = "1",
+        //        CurrecntTask = "Uterus test",
+        //        DroneGeopoint = new Geopoint(
+        //        new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1311, Altitude = 120},
+        //        AltitudeReferenceSystem.Terrain),
+        //        Locations = new LimitedQueue<BasicGeoposition>
+        //        {
+        //            new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1311 },
+        //            new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1411 },
+        //            new BasicGeoposition {Latitude = 47.6686, Longitude = -122.1511 },
+        //        },
+        //        PolutionLevel = 5
+        //    },
+        //    new Drone (DroneType.Tank){
+        //        Id="2",
+        //        CurrecntTask = "Tank test",
+        //        DroneGeopoint = new Geopoint(
+        //        new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1411, Altitude = 120},
+        //        AltitudeReferenceSystem.Terrain),
+        //        Locations = new LimitedQueue<BasicGeoposition>
+        //        {
+        //            new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1411 },
+        //            new BasicGeoposition {Latitude = 47.6886, Longitude = -122.1411 },
+        //            new BasicGeoposition {Latitude = 47.6986, Longitude = -122.1511 },
+        //        },
+        //        PolutionLevel = 10
+        //    },
+        //    new Drone (DroneType.Quadrocopter){
+        //        Id="3",
+        //        CurrecntTask = "Quadrocopter test",
+        //        DroneGeopoint = new Geopoint(
+        //        new BasicGeoposition {Latitude = 47.6786, Longitude = -122.1511, Altitude = 120},
+        //        AltitudeReferenceSystem.Terrain),
+        //        PolutionLevel = 15,
+        //        VideosList = new List<DroneVideo> {new DroneVideo(), new DroneVideo(), new DroneVideo() }
+        //    }
+        //}
+        ;
 
+        public TokenResponceJson Token
+        {
+            get { return _token; }
+        }
         public Settings Settings
         {
             get { return _settings; }
@@ -67,6 +73,72 @@ namespace WinPhoneClient.Model
             get { return _dronesList; }
         }
         #region Methods
+
+        public async Task<TokenResponceJson> ConnectToServerAsync(ConnectToServerCommandExecuter executer)
+        {
+            _token = null;
+            if (executer != null)
+                _token = await executer.ExecuteAsync() as TokenResponceJson;
+            return _token;
+        }
+
+        public async Task<DroneJson> GetDroneByIdAsync(GetDroneInfoCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer) as BaseJson;
+            if (baseJson != null)
+                return new DroneJson {Json = baseJson.Data};
+
+            return null; 
+        }
+
+        public async Task<CommandJson> GetCommandByIdAsync(GetCommandInfoCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer) as BaseJson;
+            if (baseJson != null)
+                return new CommandJson {Json = baseJson.Data};
+
+            return null;
+        }
+
+        public async Task<SensorJson> GetSensorByIdAsync(GetSensorInfoCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer) as BaseJson;
+            if (baseJson != null)
+                return new SensorJson {Json = baseJson.Data};
+            return null;
+        }
+
+        public async void UpdateDrone(UpdateDroneInfoCommandExecuter executer)
+        {
+            var json = await Execute(executer) as BaseJson;
+            if (json != null)
+            {
+                int a = 0;
+            }
+        }
+
+        private async Task<IBaseJsonValue> Execute(ICommandExecuter executer)
+        {
+            if (_token == null)
+                _token = await ConnectToServerAsync();
+            if (_token != null && executer != null)
+            {
+                var baseJson = await executer.ExecuteAsync() as BaseJson;
+                if (baseJson != null)
+                {
+                    if(!baseJson.Result)
+                        throw new ArgumentException(baseJson.ErrorMessage);
+                    return baseJson;
+                }
+            }
+            return null;
+        }
+
+        private async Task<TokenResponceJson> ConnectToServerAsync()
+        {
+            return await ConnectToServerAsync(new ConnectToServerCommandExecuter(Settings.Host,
+                            new TokenRequestJson(Settings.Login, Settings.Password)));
+        }
 
         public void StartServerListening()
         {

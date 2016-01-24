@@ -82,6 +82,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CommandExecuter\ConnectToServerCommandExecuter.cs" />
+    <Compile Include="CommandExecuter\GetInfoCommandExecuters.cs" />
+    <Compile Include="CommandExecuter\UpdateInfoCommandExecuters.cs" />
     <Compile Include="Common\DroneChangedMessage.cs" />
     <Compile Include="Common\LimitList.cs" />
     <Compile Include="Common\NavigationHelper.cs" />
@@ -93,9 +96,20 @@
       <DependentUpon>DroneDetailsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Enums\Commands.cs" />
+    <Compile Include="Enums\Direction.cs" />
     <Compile Include="Enums\DroneType.cs" />
     <Compile Include="Enums\SensorType.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="JSON\BaseJson.cs" />
+    <Compile Include="JSON\CommandJson.cs" />
+    <Compile Include="JSON\DroneJson.cs" />
+    <Compile Include="JSON\IBaseJsonValue.cs" />
+    <Compile Include="CommandExecuter\ICommandExecuter.cs" />
+    <Compile Include="JSON\SensorJson.cs" />
+    <Compile Include="JSON\TokenResponceJson.cs" />
+    <Compile Include="JSON\TokenRequestJson.cs" />
+    <Compile Include="JSON\UpdateDroneJson.cs" />
+    <Compile Include="JSON\UpdateSensorJson.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -122,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\center.png" />
+    <Content Include="Assets\connect.png" />
     <Content Include="Assets\Logo.scale-240.png" />
     <Content Include="Assets\send.png" />
     <Content Include="Assets\SmallLogo.scale-240.png" />
