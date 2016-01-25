@@ -22,6 +22,14 @@ namespace WinPhoneClient.JSON
             };
         }
         public JsonObject Json { get; set; }
+        public JsonObject CreateEmptyJsonObject()
+        {
+            return new JsonObject
+            {
+                new KeyValuePair<string, IJsonValue>(LoginKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(PasswordKey, JsonValue.CreateStringValue(string.Empty))
+            };
+        }
 
         public string Login
         {

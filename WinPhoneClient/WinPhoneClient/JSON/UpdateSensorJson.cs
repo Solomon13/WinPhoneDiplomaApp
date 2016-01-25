@@ -11,7 +11,15 @@ namespace WinPhoneClient.JSON
     {
         private static string NameKey = "name";
         private static string DroneIdKey = "drone_id";
-        public JsonObject Json { get; set; } = new JsonObject();
+        public JsonObject Json { get; set; }
+        public JsonObject CreateEmptyJsonObject()
+        {
+            return new JsonObject
+            {
+                new KeyValuePair<string, IJsonValue>(NameKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(DroneIdKey, JsonValue.CreateNumberValue(0))
+            };
+        }
 
         public string Name
         {

@@ -11,5 +11,6 @@ namespace WinPhoneClient.JSON
     public interface IBaseJsonValue
     {
         JsonObject Json { get; set; }
+        JsonObject CreateEmptyJsonObject();
     }
 }

@@ -1,4 +1,5 @@
-﻿using Windows.Data.Json;
+﻿using System.Collections.Generic;
+using Windows.Data.Json;
 
 namespace WinPhoneClient.JSON
 {
@@ -10,7 +11,19 @@ namespace WinPhoneClient.JSON
         private static string CreatedTimeKey = "created_at";
         private static string UpdatedTimeKey = "updated_at";
         private static string DeletedTimeKey = "deleted_at";
-        public JsonObject Json { get; set; } = new JsonObject();
+        public JsonObject Json { get; set; }
+        public JsonObject CreateEmptyJsonObject()
+        {
+            return new JsonObject
+            {
+                new KeyValuePair<string, IJsonValue>(IdKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(NameKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(DroneIdKey, JsonValue.CreateNumberValue(0)),
+                new KeyValuePair<string, IJsonValue>(CreatedTimeKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(UpdatedTimeKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(DeletedTimeKey, JsonValue.CreateStringValue(string.Empty)),
+            };
+        }
 
         public double Id
         {

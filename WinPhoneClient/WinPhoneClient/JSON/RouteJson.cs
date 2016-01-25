@@ -5,14 +5,14 @@ using WinPhoneClient.Enums;
 
 namespace WinPhoneClient.JSON
 {
-    public class CommandJson : IBaseJsonValue
+    public class RouteJson : IBaseJsonValue
     {
         private static string IdKey = "id";
-        private static string DescriptionKey = "description";
         private static string LatitudeKey = "latitude";
         private static string LongtitudeKey = "longitude";
         private static string HeightKey = "height";
         private static string DirectionKey = "direction";
+        private static string BatteryKey = "battery";
         private static string DroneIdKey = "drone_id";
         private static string AddedKey = "added";
         private static string CreatedTimeKey = "created_at";
@@ -24,11 +24,11 @@ namespace WinPhoneClient.JSON
             return new JsonObject
             {
                 new KeyValuePair<string, IJsonValue>(IdKey, JsonValue.CreateStringValue(string.Empty)),
-                new KeyValuePair<string, IJsonValue>(DescriptionKey, JsonValue.CreateStringValue(string.Empty)),
                 new KeyValuePair<string, IJsonValue>(LatitudeKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(LongtitudeKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(HeightKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(DirectionKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(BatteryKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(DroneIdKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(AddedKey, JsonValue.CreateStringValue(string.Empty)),
                 new KeyValuePair<string, IJsonValue>(CreatedTimeKey, JsonValue.CreateStringValue(string.Empty)),
@@ -37,7 +37,7 @@ namespace WinPhoneClient.JSON
             };
         }
 
-        public double CommandId
+        public double RouteId
         {
             get
             {
@@ -52,18 +52,18 @@ namespace WinPhoneClient.JSON
             }
         }
 
-        public string Description
+        public double Battery
         {
             get
             {
-                if (Json != null && Json.ContainsKey(DescriptionKey))
-                    return Json[DescriptionKey].GetString();
-                return null;
+                if (Json != null && Json.ContainsKey(BatteryKey))
+                    return Json[BatteryKey].GetNumber();
+                return double.NaN;
             }
             set
             {
-                if (Json != null && Json.ContainsKey(DescriptionKey))
-                    Json[DescriptionKey] = JsonValue.CreateStringValue(value);
+                if (Json != null && Json.ContainsKey(BatteryKey))
+                    Json[BatteryKey] = JsonValue.CreateNumberValue(value);
             }
         }
 
@@ -117,7 +117,7 @@ namespace WinPhoneClient.JSON
             get
             {
                 if (Json != null && Json.ContainsKey(DirectionKey))
-                    return (Direction) Enum.Parse(typeof(Direction), Json[DirectionKey].GetString());
+                    return (Direction)Enum.Parse(typeof(Direction), Json[DirectionKey].GetString());
                 return Direction.N;
             }
             set

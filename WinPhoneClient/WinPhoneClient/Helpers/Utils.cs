@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.UI.Xaml.Media;
+using WinPhoneClient.JSON;
 using WpWinNl.Utilities;
 
 namespace WinPhoneClient.Helpers
@@ -42,6 +45,31 @@ namespace WinPhoneClient.Helpers
             }
         }
 
+        public static List<T> GetArrayFromJson<T>(BaseJson baseJson) where T : IBaseJsonValue, new()
+        {
+            if (baseJson != null && baseJson.Result)
+            {
+                try
+                {
+                    var data = baseJson.Data;
+                    if (data is JsonArray)
+                    {
+                        var dronesArray = data as JsonArray;
+                        if (dronesArray.Any())
+                            return (from JsonValue json in dronesArray select new T { Json = json.GetObject() }).ToList();
+                    }
+                    else
+                    {
+                        return new List<T> { new T { Json = data as JsonObject } };
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return null;
+        }
+
         public static  MapControl GetMainMapControl()
         {
             if (App.MainPage != null)
@@ -54,6 +82,23 @@ namespace WinPhoneClient.Helpers
             return null;
         }
 
+        public static bool MainHubNavivateToSection(string sectionName)
+        {
+            var hub = GetMainHub();
+            if (hub != null && !string.IsNullOrEmpty(sectionName))
+            {
+                var section =
+                    FindVisualChildren<HubSection>(hub)
+                        .FirstOrDefault(s => s.Name == sectionName);
+                if (section != null)
+                {
+                    hub.ScrollToSection(section);
+                    return true;
+                }
+            }
+
+            return false;
+        }
         public static Hub GetMainHub()
         {
             if (App.MainPage != null)

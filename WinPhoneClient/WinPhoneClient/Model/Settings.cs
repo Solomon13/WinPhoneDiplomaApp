@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WinPhoneClient.JSON;
 
 namespace WinPhoneClient.Model
 {
@@ -14,5 +15,6 @@ namespace WinPhoneClient.Model
         public string Host { get; set; } = DefaultHost;
         public string Login { get; set; } = DefaultUserName;
         public string Password { get; set; } = DefaultPassword;
+        public TokenResponceJson Token { get; set; }
     }
 }

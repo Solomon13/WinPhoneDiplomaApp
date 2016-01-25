@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Data.Json;
@@ -7,17 +8,17 @@ using Windows.Devices.Geolocation;
 using GalaSoft.MvvmLight.Messaging;
 using WinPhoneClient.CommandExecuter;
 using WinPhoneClient.Common;
+using WinPhoneClient.Helpers;
 using WinPhoneClient.JSON;
 
 namespace WinPhoneClient.Model
 {
     public class ServerAddapter
     {
-        private TokenResponceJson _token;
-        private Task _workingTask;
-        private CancellationTokenSource _cancellationToken;
+        //private Task _workingTask;
+        //private CancellationTokenSource _cancellationToken;
         private Settings _settings = new Settings();
-        private List<Drone> _dronesList = new List<Drone>()
+        //private List<Drone> _dronesList = new List<Drone>()
         //{
         //    new Drone (DroneType.Uterus){
         //        Id = "1",
@@ -57,77 +58,124 @@ namespace WinPhoneClient.Model
         //        VideosList = new List<DroneVideo> {new DroneVideo(), new DroneVideo(), new DroneVideo() }
         //    }
         //}
-        ;
-
-        public TokenResponceJson Token
-        {
-            get { return _token; }
-        }
+        //;
         public Settings Settings
         {
             get { return _settings; }
         }
-
-        public List<Drone> DroneList
-        {
-            get { return _dronesList; }
-        }
         #region Methods
 
+        public async void UpdateDroneList()
+        {
+            if (Settings.Token == null)
+                await ConnectToServerAsync();
+            if (Settings.Token == null)
+            {
+                Messenger.Default.Send(new ErrorMessage {Error = "Failed to update drone list"});
+                return;
+            }
+
+            var drones = await GetAllDrones(new GetAllDronesInfoCommandExecuter(Settings.Host, Settings.Token.FormatedToken));
+            if (drones.Any())
+            {
+                
+            }
+        }
         public async Task<TokenResponceJson> ConnectToServerAsync(ConnectToServerCommandExecuter executer)
         {
-            _token = null;
+            Settings.Token = null;
             if (executer != null)
-                _token = await executer.ExecuteAsync() as TokenResponceJson;
-            return _token;
+                Settings.Token = await executer.ExecuteAsync() as TokenResponceJson;
+            return Settings.Token;
         }
-
+        #region GetInfo 
         public async Task<DroneJson> GetDroneByIdAsync(GetDroneInfoCommandExecuter executer)
         {
-            var baseJson = await Execute(executer) as BaseJson;
+            var baseJson = await Execute(executer);
             if (baseJson != null)
-                return new DroneJson {Json = baseJson.Data};
+                return new DroneJson {Json = baseJson.Data as JsonObject};
 
             return null; 
         }
 
-        public async Task<CommandJson> GetCommandByIdAsync(GetCommandInfoCommandExecuter executer)
+        public async Task<List<DroneJson>> GetAvailableDronesAsync(GetAvailableDronesInfoCommandExecuter executer)
         {
-            var baseJson = await Execute(executer) as BaseJson;
+            var baseJson = await Execute(executer);
             if (baseJson != null)
-                return new CommandJson {Json = baseJson.Data};
+                return Utils.GetArrayFromJson<DroneJson>(baseJson);
 
             return null;
         }
 
-        public async Task<SensorJson> GetSensorByIdAsync(GetSensorInfoCommandExecuter executer)
+        public async Task<List<DroneJson>> GetAllDrones(GetAllDronesInfoCommandExecuter executer)
         {
-            var baseJson = await Execute(executer) as BaseJson;
+            var baseJson = await Execute(executer);
             if (baseJson != null)
-                return new SensorJson {Json = baseJson.Data};
+                return Utils.GetArrayFromJson<DroneJson>(baseJson);
+
             return null;
         }
+
+        public async Task<List<CommandJson>> GetDroneCommandsAsync(GetCommandsInfoCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer);
+            if (baseJson != null && baseJson.Result)
+                return Utils.GetArrayFromJson<CommandJson>(baseJson);
+
+            return null;
+        }
+
+        public async Task<List<SensorJson>> GetDroneSensorsAsync(GetSensorsInfoCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer);
+            if (baseJson != null)
+                return Utils.GetArrayFromJson<SensorJson>(baseJson);
+            return null;
+        }
+
+        public async Task<List<RouteJson>> GetDroneRoutesAsync(GetRoutesInfoCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer);
+            if (baseJson != null)
+                return Utils.GetArrayFromJson<RouteJson>(baseJson);
+
+            return null;
+        }
+        #endregion
+        #region Add items
+
+        public async void AddDroneAsync(AddDroneItemCommandExecuter executer)
+        {
+            if (Settings.Token == null)
+                Settings.Token = await ConnectToServerAsync();
+            if (Settings.Token != null && executer != null)
+                await executer.ExecuteAsync();
+        }
+        #endregion
 
         public async void UpdateDrone(UpdateDroneInfoCommandExecuter executer)
         {
-            var json = await Execute(executer) as BaseJson;
+            var json = await Execute(executer);
             if (json != null)
             {
                 int a = 0;
             }
         }
 
-        private async Task<IBaseJsonValue> Execute(ICommandExecuter executer)
+        private async Task<BaseJson> Execute(ICommandExecuter executer)
         {
-            if (_token == null)
-                _token = await ConnectToServerAsync();
-            if (_token != null && executer != null)
+            if (Settings.Token == null)
+                Settings.Token = await ConnectToServerAsync();
+            if (Settings.Token != null && executer != null)
             {
                 var baseJson = await executer.ExecuteAsync() as BaseJson;
                 if (baseJson != null)
                 {
-                    if(!baseJson.Result)
-                        throw new ArgumentException(baseJson.ErrorMessage);
+                    if (!baseJson.Result)
+                    {
+                        Messenger.Default.Send(new ErrorMessage {Error = baseJson.ErrorMessage});
+                        return null;
+                    }
                     return baseJson;
                 }
             }
@@ -138,62 +186,62 @@ namespace WinPhoneClient.Model
         {
             return await ConnectToServerAsync(new ConnectToServerCommandExecuter(Settings.Host,
                             new TokenRequestJson(Settings.Login, Settings.Password)));
-        }
+        } 
 
-        public void StartServerListening()
-        {
-            _cancellationToken = new CancellationTokenSource();
-            _workingTask = Task.Factory.StartNew(RouteTest, _cancellationToken);
-        }
+        //public void StartServerListening()
+        //{
+        //    _cancellationToken = new CancellationTokenSource();
+        //    _workingTask = Task.Factory.StartNew(RouteTest, _cancellationToken);
+        //}
 
-        public void StopServerListening()
-        {
-            if(!_workingTask.IsCompleted)
-                _cancellationToken.Token.ThrowIfCancellationRequested();
+        //public void StopServerListening()
+        //{
+        //    if(!_workingTask.IsCompleted)
+        //        _cancellationToken.Token.ThrowIfCancellationRequested();
 
-        }
+        //}
 
-        private async void RouteTest(object o)
-        {
-            var cancelationTokenSource = o as CancellationTokenSource;
-            if (cancelationTokenSource != null)
-            {
-                var drone = DroneList[0];
-                int rectangleSide = 0;
-                int steptedCount = 0;
-                var basicPosition = drone.DroneGeopoint.Position;
+        //private async void RouteTest(object o)
+        //{
+        //    var cancelationTokenSource = o as CancellationTokenSource;
+        //    if (cancelationTokenSource != null)
+        //    {
+        //        var drone = DroneList[0];
+        //        int rectangleSide = 0;
+        //        int steptedCount = 0;
+        //        var basicPosition = drone.DroneGeopoint.Position;
 
-                while (!cancelationTokenSource.IsCancellationRequested)
-                {
-                    steptedCount++;
-                    switch (rectangleSide)
-                    {
-                        case 0:
-                            basicPosition.Longitude += 0.01;
-                            break;
-                        case 1:
-                            basicPosition.Latitude -= 0.01;
-                            break;
-                        case 2:
-                            basicPosition.Longitude -= 0.01;
-                            break;
-                        case 3:
-                            basicPosition.Latitude += 0.01;
-                            break;
-                    }
+        //        while (!cancelationTokenSource.IsCancellationRequested)
+        //        {
+        //            steptedCount++;
+        //            switch (rectangleSide)
+        //            {
+        //                case 0:
+        //                    basicPosition.Longitude += 0.01;
+        //                    break;
+        //                case 1:
+        //                    basicPosition.Latitude -= 0.01;
+        //                    break;
+        //                case 2:
+        //                    basicPosition.Longitude -= 0.01;
+        //                    break;
+        //                case 3:
+        //                    basicPosition.Latitude += 0.01;
+        //                    break;
+        //            }
 
-                    Messenger.Default.Send(new DronePossitionChangedMessage(drone, new Geopoint(basicPosition)));
+        //            Messenger.Default.Send(new DronePossitionChangedMessage(drone, new Geopoint(basicPosition)));
 
-                    if (steptedCount >= 4)
-                    {
-                        rectangleSide = rectangleSide + 1 > 3 ? 0 : rectangleSide + 1;
-                        steptedCount = 0;
-                    }
+        //            if (steptedCount >= 4)
+        //            {
+        //                rectangleSide = rectangleSide + 1 > 3 ? 0 : rectangleSide + 1;
+        //                steptedCount = 0;
+        //            }
 
-                    await Task.Delay(2000);
-                }
-            }
-        }
+        //            await Task.Delay(2000);
+        //        }
+        //    }
+        //}
         #endregion
     }
 }

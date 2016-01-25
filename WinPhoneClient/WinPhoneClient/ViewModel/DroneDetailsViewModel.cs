@@ -73,18 +73,10 @@ namespace WinPhoneClient.ViewModel
             {
                 return _openSettingsCommand ?? (_openSettingsCommand = new RelayCommand(() =>
                 {
-                    var hub = Utils.GetMainHub();
-                    if (hub != null)
+                    if (Utils.MainHubNavivateToSection("SettingsHubSection"))
                     {
-                        var section =
-                            Utils.FindVisualChildren<HubSection>(hub)
-                                .FirstOrDefault(s => s.Name == "SettingsHubSection");
-                        if (section != null)
-                        {
-                            hub.ScrollToSection(section);
-                            var rootFrame = Window.Current.Content as Frame;
-                            rootFrame?.Navigate(typeof (MainPage));
-                        }
+                        var rootFrame = Window.Current.Content as Frame;
+                        rootFrame?.Navigate(typeof (MainPage));
                     }
                 }));
             }

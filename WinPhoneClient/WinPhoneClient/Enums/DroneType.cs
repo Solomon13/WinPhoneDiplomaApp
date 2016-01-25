@@ -2,8 +2,7 @@
 {
     public enum DroneType
     {
-        Tank,
-        Uterus,
-        Quadrocopter
+        aircraft,
+        machine
     }
 }

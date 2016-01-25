@@ -1,4 +1,7 @@
-﻿using Windows.Data.Json;
+﻿using System;
+using System.Collections.Generic;
+using Windows.Data.Json;
+using WinPhoneClient.Enums;
 
 namespace WinPhoneClient.JSON
 {
@@ -9,7 +12,17 @@ namespace WinPhoneClient.JSON
         private static string TypeKey = "type";
         private static string AvailableKey = "available";
 
-        public JsonObject Json { get; set; } = new JsonObject();
+        public JsonObject Json { get; set; }
+        public JsonObject CreateEmptyJsonObject()
+        {
+            return new JsonObject
+            {
+                new KeyValuePair<string, IJsonValue>(NameKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(StatusKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(TypeKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(AvailableKey, JsonValue.CreateBooleanValue(false)),
+            };
+        }
 
         public string Name
         {
@@ -26,33 +39,33 @@ namespace WinPhoneClient.JSON
             }
         }
 
-        public string Status
+        public DroneStatus Status
         {
             get
             {
                 if (Json != null && Json.ContainsKey(StatusKey))
-                    return Json[StatusKey].GetString();
-                return null;
+                    return (DroneStatus)Enum.Parse(typeof(DroneStatus), Json[StatusKey].GetString());
+                return DroneStatus.inactive;
             }
             set
             {
                 if (Json != null && Json.ContainsKey(StatusKey))
-                    Json[StatusKey] = JsonValue.CreateStringValue(value);
+                    Json[StatusKey] = JsonValue.CreateStringValue(value.ToString());
             }
         }
 
-        public string DroneType
+        public DroneType DroneType
         {
             get
             {
                 if (Json != null && Json.ContainsKey(TypeKey))
-                    return Json[TypeKey].GetString();
-                return null;
+                    return (DroneType)Enum.Parse(typeof(DroneType), Json[TypeKey].GetString());
+                return DroneType.aircraft;
             }
             set
             {
                 if (Json != null && Json.ContainsKey(TypeKey))
-                    Json[TypeKey] = JsonValue.CreateStringValue(value);
+                    Json[TypeKey] = JsonValue.CreateStringValue(value.ToString());
             }
         }
 

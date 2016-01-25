@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Data.Json;
 using WinPhoneClient.JSON;
@@ -33,7 +34,7 @@ namespace WinPhoneClient.CommandExecuter
                 httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 var requestMessage = new HttpRequestMessage(HttpMethod.Put, new Uri(UriString));
                 requestMessage.Headers.Add("Authorization", Token);
-                requestMessage.Content = new StringContent(UpdateJson.Json.Stringify());
+                requestMessage.Content = new StringContent(UpdateJson.Json.Stringify(), Encoding.UTF8, "application/json");
                 var responce = await httpClient.SendAsync(requestMessage);
                 if (responce.IsSuccessStatusCode)
                 {

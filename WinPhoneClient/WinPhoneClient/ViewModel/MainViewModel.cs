@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Windows.Data.Json;
 using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Networking;
@@ -18,6 +19,7 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using WinPhoneClient.CommandExecuter;
 using WinPhoneClient.Common;
+using WinPhoneClient.Enums;
 using WinPhoneClient.Helpers;
 using WinPhoneClient.JSON;
 using WinPhoneClient.Model;
@@ -34,7 +36,7 @@ namespace WinPhoneClient.ViewModel
     public class MainViewModel : ViewModelBase
     {
         #region Fields
-        private readonly ServerAddapter _model = new ServerAddapter();
+        private readonly ServerAddapter _serverAddapter = new ServerAddapter();
         private Geopoint _userPossition;
         private Geopoint _mapCenterGeopoint;
         private double _zoomLavel = 13.0;
@@ -58,12 +60,9 @@ namespace WinPhoneClient.ViewModel
         #region Constructor
         public MainViewModel()
         {
-            foreach (var drone in _model.DroneList)
-                Drones.Add(new DroneInfo(drone));
-
-            _serverHost = _model.Settings.Host;
-            _userLogin = _model.Settings.Login;
-            _userPassword = _model.Settings.Password;
+            _serverHost = _serverAddapter.Settings.Host;
+            _userLogin = _serverAddapter.Settings.Login;
+            _userPassword = _serverAddapter.Settings.Password;
             //UpdateCurrentLocation();
             //CreateMapItemNamesList();
             //CreateRoutesColection();
@@ -73,22 +72,37 @@ namespace WinPhoneClient.ViewModel
             #region Message Handlers
             Messenger.Default.Register<DronePossitionChangedMessage>(this,async arg =>
             {
-                if (arg != null)
-                {
-                    var droneInfo = Drones.FirstOrDefault(d => d.Model == arg.ChangedDrone);
-                    if (droneInfo != null)
-                    {
-                        await AnimatedChangePossitionAsync(droneInfo, droneInfo.DroneGeopoint, arg.NewDronePosition);
-                        await DispatcherHelper.UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                        {
-                            if (arg.NewRoutePoints == null)
-                                arg.ChangedDrone.Locations.Add(arg.NewDronePosition.Position);
-                            else
-                                arg.ChangedDrone.Locations.AddRange(arg.NewRoutePoints);
-                            UpdateDroneRoute(droneInfo.Id, droneInfo.IsSelected);
-                        });
+                //if (arg != null)
+                //{
+                //    var droneInfo = Drones.FirstOrDefault(d => d.Model == arg.ChangedDrone);
+                //    if (droneInfo != null)
+                //    {
+                //        await AnimatedChangePossitionAsync(droneInfo, droneInfo.DroneGeopoint, arg.NewDronePosition);
+                //        await DispatcherHelper.UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                //        {
+                //            if (arg.NewRoutePoints == null)
+                //                arg.ChangedDrone.Locations.Add(arg.NewDronePosition.Position);
+                //            else
+                //                arg.ChangedDrone.Locations.AddRange(arg.NewRoutePoints);
+                //            UpdateDroneRoute(droneInfo.Id, droneInfo.IsSelected);
+                //        });
                         
-                    }
+                //    }
+                //}
+            });
+
+            Messenger.Default.Register<ErrorMessage>(this, async msg =>
+            {
+                IAsyncOperation<IUICommand> dialogTask = null;
+                var messageBox = new MessageDialog($"Error: {msg}");
+                messageBox.Commands.Add(new UICommand("OK", command => dialogTask?.Cancel()));
+                dialogTask = messageBox.ShowAsync();
+                try
+                {
+                    await dialogTask;
+                }
+                catch (TaskCanceledException)
+                {
                 }
             });
             #endregion
@@ -96,10 +110,8 @@ namespace WinPhoneClient.ViewModel
         #endregion
         #region Properties
 
-        public ServerAddapter Model
-        {
-            get { return _model; }
-        }
+        public ServerAddapter Addapter => _serverAddapter;
+
         public string UserLogin
         {
             get { return _userLogin; }
@@ -143,9 +155,9 @@ namespace WinPhoneClient.ViewModel
             set
             {
                 Set(ref _showRoutes, value);
-                if(value)
-                    CreateRoutesColection();
-                else
+                //if(value)
+                //    CreateRoutesColection();
+                //else
                     DroneRoutes.Clear();
             }
         }
@@ -211,16 +223,16 @@ namespace WinPhoneClient.ViewModel
 
         public void SaveLocalSettings()
         {
-            ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Host)] = Model.Settings.Host;
-            ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Login)] = Model.Settings.Login;
-            ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Password)] = Model.Settings.Password;
+            ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Host)] = Addapter.Settings.Host;
+            ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Login)] = Addapter.Settings.Login;
+            ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Password)] = Addapter.Settings.Password;
         }
 
         public void LoadLocalSttings()
         {
-            Host = ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Host)]?.ToString();
-            UserLogin = ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Login)]?.ToString();
-            UserPassword = ApplicationData.Current.LocalSettings.Values[nameof(Model.Settings.Password)]?.ToString();
+            Host = ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Host)]?.ToString();
+            UserLogin = ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Login)]?.ToString();
+            UserPassword = ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Password)]?.ToString();
 
             if (string.IsNullOrEmpty(Host))
                 Host = Settings.DefaultHost;
@@ -246,16 +258,16 @@ namespace WinPhoneClient.ViewModel
                 MapCenterGeopoint = UserPossition;
         }
 
-        private void CreateMapItemNamesList()
-        {
-            MapItemNamesCollection.Clear();
-            MapItemNamesCollection.Add("User");
-            foreach (var droneInfo in _model.DroneList)
-                MapItemNamesCollection.Add($"{droneInfo.DroneType}-'{droneInfo.Id}'");
+        //private void CreateMapItemNamesList()
+        //{
+        //    MapItemNamesCollection.Clear();
+        //    MapItemNamesCollection.Add("User");
+        //    foreach (var droneInfo in _model.DroneList)
+        //        MapItemNamesCollection.Add($"{droneInfo.DroneType}-'{droneInfo.Id}'");
 
-            if (!MapItemNamesCollection.Contains(_selectedMapItem))
-                SelectedMapItem = MapItemNamesCollection[0];
-        }
+        //    if (!MapItemNamesCollection.Contains(_selectedMapItem))
+        //        SelectedMapItem = MapItemNamesCollection[0];
+        //}
 
         private Geopoint FindCenterGeoposition(string selectedName)
         {
@@ -266,13 +278,13 @@ namespace WinPhoneClient.ViewModel
 
                 var regex = new Regex("'.*'");
                 var match = regex.Match(_selectedMapItem);
-                if (!string.IsNullOrEmpty(match.Value))
-                {
-                    var value = match.Value.Replace("'", "");
-                    var drone = _model.DroneList.FirstOrDefault(d => d.Id == value);
-                    if(drone != null)
-                        return drone.DroneGeopoint;
-                }
+                //if (!string.IsNullOrEmpty(match.Value))
+                //{
+                //    var value = match.Value.Replace("'", "");
+                //    var drone = _serverAddapter.DroneList.FirstOrDefault(d => d.Id == value);
+                //    if(drone != null)
+                //        return drone.DroneGeopoint;
+                //}
             }
 
             return null;
@@ -282,16 +294,16 @@ namespace WinPhoneClient.ViewModel
         {
             if (!string.IsNullOrEmpty(droneId) && ShowRoutes)
             {
-                var droneInfo = Drones.FirstOrDefault(d => d.Id == droneId);
-                if (droneInfo != null)
-                {
-                    var route = GetRoute(droneId);
-                    if (route != null)
-                    {
-                        DroneRoutes.Add(new DroneRoute(droneId, droneInfo.Model.Locations, droneInfo.IconColor) {IsSelected = bIsSelected});
-                        DroneRoutes.Remove(route);
-                    }
-                }
+                //var droneInfo = Drones.FirstOrDefault(d => d.Id == droneId);
+                //if (droneInfo != null)
+                //{
+                //    var route = GetRoute(droneId);
+                //    if (route != null)
+                //    {
+                //        DroneRoutes.Add(new DroneRoute(droneId, droneInfo.Model.Locations, droneInfo.IconColor) {IsSelected = bIsSelected});
+                //        DroneRoutes.Remove(route);
+                //    }
+                //}
             }
         }
 
@@ -312,15 +324,51 @@ namespace WinPhoneClient.ViewModel
             return null;
         }
 
-        private void CreateRoutesColection()
+        public async void UpdateDroneCollection()
         {
-            DroneRoutes.Clear();
-            foreach (var droneInfo in Drones)
+            if (Addapter.Settings.Token == null)
             {
-                if (droneInfo.Model.Locations != null && droneInfo.Model.Locations.Any())
-                    DroneRoutes.Add(new DroneRoute(droneInfo.Id, droneInfo.Model.Locations, droneInfo.IconColor));
+                if (Utils.MainHubNavivateToSection("SettingsHubSection"))
+                    Messenger.Default.Send(new ErrorMessage {Error = "Server connection isn't esteblished"});
+
+                return;
             }
+
+            var dronesJson = await 
+                Addapter.GetAllDrones(new GetAllDronesInfoCommandExecuter(Addapter.Settings.Host,
+                    Addapter.Settings.Token.FormatedToken));
+            if (dronesJson.Any())
+            {
+                Drones.Clear();
+                DroneRoutes.Clear();
+                foreach (var droneJson in dronesJson)
+                {
+                    try
+                    {
+                        var droneInfo = new DroneInfo((int)droneJson.Id);
+                        droneInfo.ApplyJson(droneJson);
+                        Drones.Add(droneInfo);
+                        var routes = await Addapter.GetDroneRoutesAsync(new GetRoutesInfoCommandExecuter(Addapter.Settings.Host,
+                            droneInfo.Id, Addapter.Settings.Token.FormatedToken));
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+            }
+
         }
+
+        //private void CreateRoutesColection()
+        //{
+        //    DroneRoutes.Clear();
+        //    foreach (var droneInfo in Drones)
+        //    {
+        //        if (droneInfo.Model.Locations != null && droneInfo.Model.Locations.Any())
+        //            DroneRoutes.Add(new DroneRoute(droneInfo.Id, droneInfo.Model.Locations, droneInfo.DroneColor));
+        //    }
+        //}
 
         private async Task AnimatedChangePossitionAsync(DroneInfo drone, Geopoint startPosition, Geopoint endPossition, int stepCount = 25)
         {
@@ -329,16 +377,16 @@ namespace WinPhoneClient.ViewModel
   
             await Task.Factory.StartNew(async () =>
             {
-                var startPoint = startPosition.Position;
-                var endPoint = endPossition.Position;
-                var longitudeStep = (endPoint.Longitude - startPoint.Longitude) / stepCount;
-                var latitudeStep = (endPoint.Latitude - startPoint.Latitude) / stepCount;
-                for (int step = 0; step < stepCount; step++)
-                {
-                    startPoint.Longitude += longitudeStep;
-                    startPoint.Latitude += latitudeStep;
-                    await DispatcherHelper.UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () => drone.DroneGeopoint = new Geopoint(startPoint));
-                }
+                //var startPoint = startPosition.Position;
+                //var endPoint = endPossition.Position;
+                //var longitudeStep = (endPoint.Longitude - startPoint.Longitude) / stepCount;
+                //var latitudeStep = (endPoint.Latitude - startPoint.Latitude) / stepCount;
+                //for (int step = 0; step < stepCount; step++)
+                //{
+                //    startPoint.Longitude += longitudeStep;
+                //    startPoint.Latitude += latitudeStep;
+                //    await DispatcherHelper.UIDispatcher.RunAsync(CoreDispatcherPriority.Normal, () => drone.DroneGeopoint = new Geopoint(startPoint));
+                //}
             }
             );
         }
@@ -364,7 +412,7 @@ namespace WinPhoneClient.ViewModel
                 return _connectToServerCommand ?? (_connectToServerCommand = new RelayCommand(async () =>
                 {
                     SaveSettingsCommand.Execute(null);
-                    var token = await _model.ConnectToServerAsync(new ConnectToServerCommandExecuter(
+                    var token = await _serverAddapter.ConnectToServerAsync(new ConnectToServerCommandExecuter(
                         Host, 
                         new TokenRequestJson(UserLogin, UserPassword)));
                     if (token == null)
@@ -382,8 +430,7 @@ namespace WinPhoneClient.ViewModel
                         {
                         }
                     }
-                    var drone = Model.GetDroneByIdAsync(new GetDroneInfoCommandExecuter(Model.Settings.Host, 1, Model.Token.FormatedToken));
-                    
+                    UpdateDroneCollection();
                     RaiseCanEecuteCommandSettingsTab();
                 }, () => SaveSettingsCommand.CanExecute(null)));
             }
@@ -444,12 +491,15 @@ namespace WinPhoneClient.ViewModel
             {
                 return _saveSettingsCommand ?? (_saveSettingsCommand = new RelayCommand(() =>
                 {
-                    _model.Settings.Host = Host;
-                    _model.Settings.Login = UserLogin;
-                    _model.Settings.Password = UserPassword;
+                    _serverAddapter.Settings.Host = Host;
+                    _serverAddapter.Settings.Login = UserLogin;
+                    _serverAddapter.Settings.Password = UserPassword;
                     RaiseCanEecuteCommandSettingsTab();
                 }, () => !string.IsNullOrEmpty(Host) && !string.IsNullOrEmpty(UserLogin) && !string.IsNullOrEmpty(UserPassword) &&
-                (_model.Settings.Host != Host || _model.Settings.Login != UserLogin || _model.Settings.Password != UserPassword|| Model.Token == null)));
+                (_serverAddapter.Settings.Host != Host 
+                || Addapter.Settings.Login != UserLogin 
+                || Addapter.Settings.Password != UserPassword
+                || Addapter.Settings.Token == null)));
             }
         }
 
@@ -460,10 +510,10 @@ namespace WinPhoneClient.ViewModel
                 return _selectDroneOnMapCommand ??
                        (_selectDroneOnMapCommand = new RelayCommand<KeyValuePair<string, bool>>(arg =>
                        {
-                           var droneInfo = Drones.FirstOrDefault(d => d.Id == arg.Key);
-                           if(droneInfo != null)
-                               droneInfo.IsSelected = arg.Value;
-                           UpdateDroneRoute(arg.Key, arg.Value);
+                           //var droneInfo = Drones.FirstOrDefault(d => d.Id == arg.Key);
+                           //if(droneInfo != null)
+                           //    droneInfo.IsSelected = arg.Value;
+                           //UpdateDroneRoute(arg.Key, arg.Value);
                        }));
             }
         }

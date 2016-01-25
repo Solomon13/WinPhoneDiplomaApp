@@ -82,10 +82,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CommandExecuter\AddItemCommandExecuter.cs" />
     <Compile Include="CommandExecuter\ConnectToServerCommandExecuter.cs" />
     <Compile Include="CommandExecuter\GetInfoCommandExecuters.cs" />
     <Compile Include="CommandExecuter\UpdateInfoCommandExecuters.cs" />
     <Compile Include="Common\DroneChangedMessage.cs" />
+    <Compile Include="Common\ErrorMessage.cs" />
     <Compile Include="Common\LimitList.cs" />
     <Compile Include="Common\NavigationHelper.cs" />
     <Compile Include="Common\ObservableDictionary.cs" />
@@ -97,6 +99,7 @@
     </Compile>
     <Compile Include="Enums\Commands.cs" />
     <Compile Include="Enums\Direction.cs" />
+    <Compile Include="Enums\DroneStatus.cs" />
     <Compile Include="Enums\DroneType.cs" />
     <Compile Include="Enums\SensorType.cs" />
     <Compile Include="Helpers\Utils.cs" />
@@ -105,17 +108,21 @@
     <Compile Include="JSON\DroneJson.cs" />
     <Compile Include="JSON\IBaseJsonValue.cs" />
     <Compile Include="CommandExecuter\ICommandExecuter.cs" />
+    <Compile Include="JSON\RouteJson.cs" />
     <Compile Include="JSON\SensorJson.cs" />
     <Compile Include="JSON\TokenResponceJson.cs" />
     <Compile Include="JSON\TokenRequestJson.cs" />
     <Compile Include="JSON\UpdateDroneJson.cs" />
     <Compile Include="JSON\UpdateSensorJson.cs" />
+    <Compile Include="JSON\ValueJson.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Model\Drone.cs" />
     <Compile Include="Model\DroneVideo.cs" />
-    <Compile Include="Model\Sensor.cs" />
+    <Compile Include="Model\IJsonDependent.cs" />
+    <Compile Include="ViewModel\DroneTask.cs" />
+    <Compile Include="ViewModel\SensorInfo.cs" />
     <Compile Include="Model\ServerAddapter.cs" />
     <Compile Include="Model\Settings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

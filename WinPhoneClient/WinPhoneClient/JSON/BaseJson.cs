@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Windows.Data.Json;
 
 namespace WinPhoneClient.JSON
@@ -8,7 +9,16 @@ namespace WinPhoneClient.JSON
         private static string ResultKey = "success";
         private static string ErrorKey = "msg";
         private static string DataKey = "data";
-        public JsonObject Json { get; set; } = new JsonObject();
+        public JsonObject Json { get; set; }
+        public JsonObject CreateEmptyJsonObject()
+        {
+            return new JsonObject
+            {
+                new KeyValuePair<string, IJsonValue>(ResultKey, JsonValue.CreateBooleanValue(false)),
+                new KeyValuePair<string, IJsonValue>(ErrorKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(DataKey, null)
+            };
+        }
 
         public bool Result
         {
@@ -40,24 +50,39 @@ namespace WinPhoneClient.JSON
             }
         }
 
-        public JsonObject Data
+        public object Data
         {
             get
             {
                 if (Json != null && Json.ContainsKey(DataKey))
-                    return Json[DataKey].GetObject();
+                {
+                    var value = Json[DataKey];
+                    if (value != null)
+                    {
+                        if (IsArray(value))
+                            return value.GetArray();
+                        return value.GetObject();
+                    }
+                }
                 return null;
-            }
-            set
-            {
-                if (Json != null && Json.ContainsKey(DataKey))
-                    Json[DataKey] = value;
             }
         }
 
-        public static implicit operator BaseJson(TokenResponceJson v)
+        private bool IsArray(IJsonValue value)
         {
-            throw new NotImplementedException();
+            if (value != null)
+            {
+                try
+                {
+                    value.GetArray();
+                    return true;
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return false;
         }
     }
 }
