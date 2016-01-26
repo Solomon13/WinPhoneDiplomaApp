@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.Data.Json;
 using Windows.Devices.Geolocation;
 using Windows.Foundation;
@@ -23,14 +24,14 @@ namespace WinPhoneClient.ViewModel
             {Enums.DroneType.aircraft, new BitmapImage(new Uri("ms-appx:/Assets/quadcopter.png", UriKind.RelativeOrAbsolute)) },
             {Enums.DroneType.machine, new BitmapImage(new Uri("ms-appx:/Assets/tank.png", UriKind.RelativeOrAbsolute)) },
             //{Enums.DroneType.Uterus, new BitmapImage(new Uri("ms-appx:/Assets/uterus.png", UriKind.RelativeOrAbsolute)) }
-        }; 
-        private List<DroneTask>  _tasks = new List<DroneTask>();
-        private Visibility _detailsVisibility = Visibility.Collapsed;
+        };
+
         private bool _isSelected;
         private DroneType _droneType;
         private DroneStatus _status;
         private bool _isAvailable;
         private string _name;
+        private Geopoint _currentPossition;
         #endregion
         #region Commands
         private RelayCommand _detailsTappedCommand;
@@ -44,6 +45,8 @@ namespace WinPhoneClient.ViewModel
         #endregion
 
         #region Properties
+
+        public List<DroneTask> Tasks { get; } = new List<DroneTask>();
 
         public string Name
         {
@@ -83,10 +86,15 @@ namespace WinPhoneClient.ViewModel
             set { Set(ref _droneType, value); }
         }
 
-        public string Task
+        public string CurrentTask
         {
-            //get { return _droneModel.CurrentTask; }
-            get { return string.Empty; }
+            get
+            {
+                DroneTask last = null;
+                if(Tasks.Any())
+                   last = Tasks.Last();
+                return last == null ? string.Empty : last.Description;
+            }
         }
 
         public BitmapImage DroneIcon
@@ -103,7 +111,7 @@ namespace WinPhoneClient.ViewModel
                     case Enums.DroneType.aircraft:
                         return Colors.CornflowerBlue;
                     case Enums.DroneType.machine:
-                        return Colors.Gray;
+                        return Colors.Yellow;
                     //case Enums.DroneType.Uterus:
                     //    return Colors.Yellow;
                 }
@@ -120,12 +128,13 @@ namespace WinPhoneClient.ViewModel
         public Geopoint DroneGeopoint
         {
             //get { return _droneModel.DroneGeopoint; }
-            //set
-            //{
-            //    _droneModel.DroneGeopoint = value;
-            //    RaisePropertyChanged(nameof(DroneGeopoint));
-            //    RaisePropertyChanged(nameof(FormatedPossition));
-            //}
+            set
+            {
+                Set(ref _currentPossition, value);
+                //_droneModel.DroneGeopoint = value;
+                //RaisePropertyChanged(nameof(DroneGeopoint));
+                //RaisePropertyChanged(nameof(FormatedPossition));
+            }
             get { return new Geopoint(new BasicGeoposition { Latitude = 47.6786, Longitude = -122.1511, Altitude = 120 });}
         }
 
@@ -166,6 +175,11 @@ namespace WinPhoneClient.ViewModel
         }
         #endregion
 
+        public void RaiseProperty(string propName)
+        {
+            if(!string.IsNullOrEmpty(propName))
+                RaisePropertyChanged(propName);
+        }
         public void ApplyJson(IBaseJsonValue json)
         {
             if (json is DroneJson)

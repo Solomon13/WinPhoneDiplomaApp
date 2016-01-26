@@ -106,7 +106,7 @@
                                             Maps:MapControl.NormalizedAnchorPoint="0.5,1"/>
                             <Maps:MapItemsControl
                                 x:Name="DronePoints"
-                                ItemsSource="{Binding Drones}"
+                                ItemsSource="{Binding AvailableDrones}"
                                 ItemTemplate="{StaticResource DronePushpinControl}"/>
                             <interactivity:Interaction.Behaviors>
                                 <mapbinding:MapShapeDrawBehavior LayerName="Lines" 
@@ -211,7 +211,7 @@
 
                                     <Border>
                                         <Border.Background>
-                                            <SolidColorBrush Color="{Binding IconColor}"/>
+                                            <SolidColorBrush Color="{Binding DroneColor}"/>
                                         </Border.Background>
                                         <Image Width="79" Height="79" Source="{Binding DroneIcon}"/>
                                     </Border>
@@ -219,9 +219,9 @@
                                         
                                     </Border>-->
                                     <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="14.5,0,0,0">
-                                        <TextBlock Text="{Binding DroneType}" Style="{ThemeResource ListViewItemTextBlockStyle}"/>
-                                        <TextBlock Text="{Binding Task}" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
-                                        <TextBlock Text="{Binding FormatedPossition}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
+                                        <TextBlock Text="{Binding Name}" Style="{ThemeResource ListViewItemTextBlockStyle}"/>
+                                        <TextBlock Text="{Binding Id}" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
+                                        <TextBlock Text="{Binding CurrentTask}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
                                     </StackPanel>
                                 </Grid>
                             </DataTemplate>

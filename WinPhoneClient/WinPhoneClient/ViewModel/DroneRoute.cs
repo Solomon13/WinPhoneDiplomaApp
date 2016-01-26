@@ -20,12 +20,13 @@ namespace WinPhoneClient.ViewModel
         public Geopath Route { get; set; }
         public Color RouteColor {
             get { return IsSelected ? Colors.Red : _color; } }
-        public string DroneId { get; }
+        public int DroneId { get; }
+        public int AddedTime { get; set; }
         #endregion
         #region Constructor
-        public DroneRoute(string droneId, IEnumerable<BasicGeoposition> points, Color routeColor)
+        public DroneRoute(int droneId, IEnumerable<BasicGeoposition> points, Color routeColor)
         {
-            if(string.IsNullOrEmpty(droneId))
+            if(droneId < 0)
                 throw new ArgumentException("droneId");
             if (points == null)
                 throw new ArgumentException("points");
@@ -43,7 +44,7 @@ namespace WinPhoneClient.ViewModel
                 return _selectCommand ?? (_selectCommand = new RelayCommand(() =>
                 {
                     var mainViewModel = Application.Current.Resources["Main"] as MainViewModel;
-                    mainViewModel?.SelectDroneOnMapCommand.Execute(new KeyValuePair<string, bool>(DroneId, !IsSelected));
+                    mainViewModel?.SelectDroneOnMapCommand.Execute(new KeyValuePair<int, bool>(DroneId, !IsSelected));
                 }));
             }
         }

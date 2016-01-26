@@ -173,8 +173,7 @@ namespace WinPhoneClient.Model
                 {
                     if (!baseJson.Result)
                     {
-                        Messenger.Default.Send(new ErrorMessage {Error = baseJson.ErrorMessage});
-                        return null;
+                        throw new ArgumentException(baseJson.ErrorMessage);
                     }
                     return baseJson;
                 }

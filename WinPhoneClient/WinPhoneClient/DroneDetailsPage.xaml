@@ -17,7 +17,7 @@
                             HorizontalAlignment="Center">
                     <Border Margin="5,0">
                         <Border.Background>
-                            <SolidColorBrush Color="{Binding Model.IconColor}"/>
+                            <SolidColorBrush Color="{Binding Model.DroneColor}"/>
                         </Border.Background>
                         <Image Width="30" Height="30" Source="{Binding Model.DroneIcon}"/>
                     </Border>
@@ -52,7 +52,7 @@
                                 BorderThickness="2" 
                                 Margin="0,5">
                             <Border.BorderBrush>
-                                <SolidColorBrush Color="{Binding Model.IconColor}"/>
+                                <SolidColorBrush Color="{Binding Model.DroneColor}"/>
                             </Border.BorderBrush>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -73,7 +73,7 @@
                                        Margin="10,0"/>
                                 <TextBlock Grid.Row="0"
                                        Grid.Column="1"
-                                       Text="{Binding Model.Task}"
+                                       Text="{Binding Model.CurrentTask}"
                                        Style="{ThemeResource TitleTextBlockStyle}" 
                                        HorizontalAlignment="Center"/>
 

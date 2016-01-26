@@ -37,7 +37,7 @@
                       maps:MapControl.Location="{Binding DroneGeopoint}"
                       maps:MapControl.NormalizedAnchorPoint="{Binding Anchor}">
                     <Grid.Resources>
-                        <SolidColorBrush Color="{Binding IconColor}" Opacity="0.8" x:Key="DroneBackgroundColor"/>
+                        <SolidColorBrush Color="{Binding DroneColor}" Opacity="0.8" x:Key="DroneBackgroundColor"/>
                         <SolidColorBrush Color="{Binding BorderColor}" Opacity="0.8" x:Key="DroneBorderBrush"/>
                     </Grid.Resources>
                     <Grid.RowDefinitions>
@@ -58,9 +58,9 @@
                         <StackPanel Orientation="Horizontal">
                             <Image Height="24" Width="24" Margin="5" Source="{Binding DroneIcon}"/>
                             <StackPanel Visibility="{Binding Path=DetailsVisibility}">
-                                <TextBlock Text="{Binding Path=DroneType}" FontWeight="Bold" FontSize="12" Foreground="Black"/>
-                                <TextBlock Text="{Binding Path=FormatedPossition}" FontSize="12" Foreground="Black"/>
-                                <TextBlock Text="{Binding Path=Task}" FontSize="12" Foreground="Black"/>
+                                <TextBlock Text="{Binding Path=Name}" FontWeight="Bold" FontSize="12" Foreground="Black"/>
+                                <TextBlock Text="{Binding Path=Id}" FontSize="12" Foreground="Black"/>
+                                <TextBlock Text="{Binding Path=CurrentTask}" FontSize="12" Foreground="Black"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
