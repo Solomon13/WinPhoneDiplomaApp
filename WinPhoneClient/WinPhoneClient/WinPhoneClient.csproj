@@ -86,7 +86,7 @@
     <Compile Include="CommandExecuter\ConnectToServerCommandExecuter.cs" />
     <Compile Include="CommandExecuter\GetInfoCommandExecuters.cs" />
     <Compile Include="CommandExecuter\UpdateInfoCommandExecuters.cs" />
-    <Compile Include="Common\DroneChangedMessage.cs" />
+    <Compile Include="Common\DroneAvailableChangedMessage.cs" />
     <Compile Include="Common\ErrorMessage.cs" />
     <Compile Include="Common\LimitList.cs" />
     <Compile Include="Common\NavigationHelper.cs" />
@@ -104,21 +104,21 @@
     <Compile Include="Enums\SensorType.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="JSON\BaseJson.cs" />
-    <Compile Include="JSON\CommandJson.cs" />
+    <Compile Include="JSON\TaskJson.cs" />
     <Compile Include="JSON\DroneJson.cs" />
     <Compile Include="JSON\IBaseJsonValue.cs" />
     <Compile Include="CommandExecuter\ICommandExecuter.cs" />
     <Compile Include="JSON\RouteJson.cs" />
     <Compile Include="JSON\SensorJson.cs" />
+    <Compile Include="JSON\SensorValueJson.cs" />
+    <Compile Include="JSON\TaskValueJson.cs" />
     <Compile Include="JSON\TokenResponceJson.cs" />
     <Compile Include="JSON\TokenRequestJson.cs" />
     <Compile Include="JSON\UpdateDroneJson.cs" />
     <Compile Include="JSON\UpdateSensorJson.cs" />
-    <Compile Include="JSON\ValueJson.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Model\Drone.cs" />
     <Compile Include="Model\DroneVideo.cs" />
     <Compile Include="Model\IJsonDependent.cs" />
     <Compile Include="ViewModel\DroneTask.cs" />
@@ -131,7 +131,6 @@
     </Compile>
     <Compile Include="ViewModel\DroneDetailsViewModel.cs" />
     <Compile Include="ViewModel\DroneInfo.cs" />
-    <Compile Include="ViewModel\DroneLocationItem.cs" />
     <Compile Include="ViewModel\DroneRoute.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
@@ -142,6 +141,12 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\battery-1.png" />
+    <Content Include="Assets\battery-2.png" />
+    <Content Include="Assets\battery-3.png" />
+    <Content Include="Assets\battery-empty.png" />
+    <Content Include="Assets\battery-full.png" />
+    <Content Include="Assets\battery-half.png" />
     <Content Include="Assets\center.png" />
     <Content Include="Assets\connect.png" />
     <Content Include="Assets\Logo.scale-240.png" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Windows.Data.Json;
 using Windows.Devices.Geolocation;
 using Windows.UI;
@@ -35,6 +36,20 @@ namespace WinPhoneClient.ViewModel
             _color = routeColor;
             DroneId = droneId;
         }
+        #endregion
+        #region Public methods
+
+        public void AddPoints(IEnumerable<BasicGeoposition> points)
+        {
+            var basicGeopositions = points as BasicGeoposition[] ?? points.ToArray();
+            if (points != null && basicGeopositions.Any())
+            {
+                var routePoints = Route.Positions.ToList();
+                routePoints.AddRange(basicGeopositions);
+                Route = new Geopath(routePoints);
+            }
+        }
+
         #endregion
         #region Command Handlers
         public RelayCommand SelectCommand

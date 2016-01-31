@@ -20,7 +20,7 @@ namespace WinPhoneClient.CommandExecuter
             Token = formatedToken;
         }
 
-        public async Task<IBaseJsonValue> ExecuteAsync()
+        public virtual async Task<IBaseJsonValue> ExecuteAsync()
         {
             BaseJson baseJson = null;
             try
@@ -42,41 +42,59 @@ namespace WinPhoneClient.CommandExecuter
         }
     }
 
-    public class GetDroneInfoCommandExecuter : GetInfoCommandExecuter
+    public class GetDroneCommandExecuter : GetInfoCommandExecuter
     {
-        public GetDroneInfoCommandExecuter(string serverUri, double id, string formatedToken) 
+        public GetDroneCommandExecuter(string serverUri, string formatedToken, double id) 
             : base($"{serverUri}/v1/get/drone/{id}", formatedToken)
         {
         }
     }
 
-    public class GetAllDronesInfoCommandExecuter : GetInfoCommandExecuter
+    public class GetAllDronesCommandExecuter : GetInfoCommandExecuter
     {
-        public GetAllDronesInfoCommandExecuter(string serverUri, string formatedToken)
+        public GetAllDronesCommandExecuter(string serverUri, string formatedToken)
             : base($"{serverUri}/v1/get/drone/", formatedToken)
         {
         }
     }
 
-    public class GetCommandsInfoCommandExecuter : GetInfoCommandExecuter
+    public class GetDroneTasksCommandExecuter : GetInfoCommandExecuter
     {
-        public GetCommandsInfoCommandExecuter(string serverUri, double droneId, string formatedToken) 
-            : base($"{serverUri}/v1/get/command/{droneId}", formatedToken)
+        public GetDroneTasksCommandExecuter(string serverUri, string formatedToken, int droneId) 
+            : base($"{serverUri}/v1/get/task/{droneId}", formatedToken)
+        {
+        }
+
+        public GetDroneTasksCommandExecuter(string serverUri, string formatedToken, int droneId, int unixStartTime, int unixEndTime)
+    : base($"{serverUri}/v1/get/task/{droneId}/{unixStartTime}/{unixEndTime}", formatedToken)
         {
         }
     }
 
-    public class GetRoutesInfoCommandExecuter : GetInfoCommandExecuter
+    public class GetTaskValuesCommandExecuter : GetInfoCommandExecuter
     {
-        public GetRoutesInfoCommandExecuter(string serverUri, double droneId, string formatedToken) 
+        public GetTaskValuesCommandExecuter(string serverUri, string formatedToken, double taskId)
+            : base($"{serverUri}/v1/getTaskValues/task/{taskId}", formatedToken)
+        {
+        }
+    }
+
+    public class GetDroneRoutesCommandExecuter : GetInfoCommandExecuter
+    {
+        public GetDroneRoutesCommandExecuter(string serverUri, string formatedToken, double droneId) 
             : base($"{serverUri}/v1/get/route/{droneId}", formatedToken)
         {
         }
+
+        public GetDroneRoutesCommandExecuter(string serverUri, string formatedToken, double droneId, int unixStartTime, int unixEndTime)
+            : base($"{serverUri}/v1/get/route/{droneId}/{unixStartTime}/{unixEndTime}", formatedToken)
+        {
+        }
     }
 
-    public class GetSensorsInfoCommandExecuter : GetInfoCommandExecuter
+    public class GetDroneSensorsCommandExecuter : GetInfoCommandExecuter
     {
-        public GetSensorsInfoCommandExecuter(string serverUri, double droneId, string formatedToken) 
+        public GetDroneSensorsCommandExecuter(string serverUri, string formatedToken, double droneId) 
             : base($"{serverUri}/v1/get/sensor/{droneId}", formatedToken)
         {
         }
@@ -93,15 +111,12 @@ namespace WinPhoneClient.CommandExecuter
     public class GetSensorValuesCommandExecuter : GetInfoCommandExecuter
     {
         public GetSensorValuesCommandExecuter(string serverUri, string formatedToken, int sensorId) 
-            : base($"{serverUri}/v1/values/{sensorId}", formatedToken)
+            : base($"{serverUri}/v1/get/sensorValues/{sensorId}", formatedToken)
         {
         }
-    }
 
-    public class GetAllSensorsCommandExecuter : GetInfoCommandExecuter
-    {
-        public GetAllSensorsCommandExecuter(string serverUri, string formatedToken) 
-            : base($"{serverUri}/v1/sensor/", formatedToken)
+        public GetSensorValuesCommandExecuter(string serverUri, string formatedToken, int sensorId, int unixStartTime, int unixEndTime)
+    : base($"{serverUri}/v1/get/sensorValues/{sensorId}/{unixStartTime}/{unixEndTime}", formatedToken)
         {
         }
     }

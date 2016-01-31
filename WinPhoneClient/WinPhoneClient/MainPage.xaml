@@ -9,7 +9,199 @@
       DataContext="{StaticResource Main}">
 
     <Grid>
+        <interactivity:Interaction.Behaviors>
+            <core:DataTriggerBehavior Binding="{Binding IsLoading}" Value="True" ComparisonCondition="Equal">
+                <core:DataTriggerBehavior.Actions>
+                    <core:ChangePropertyAction TargetObject="{Binding ElementName=MainHub}"
+                                               PropertyName="Visibility"
+                                               Value="Collapsed"
+                                                   />
+                </core:DataTriggerBehavior.Actions>
+            </core:DataTriggerBehavior>
+            <core:DataTriggerBehavior Binding="{Binding IsLoading}" Value="False" ComparisonCondition="Equal">
+                <core:DataTriggerBehavior.Actions>
+                    <core:ChangePropertyAction TargetObject="{Binding ElementName=MainHub}"
+                                               PropertyName="Visibility"
+                                               Value="Visible"
+                                                   />
+                </core:DataTriggerBehavior.Actions>
+            </core:DataTriggerBehavior>
+        </interactivity:Interaction.Behaviors>
+        <ProgressRing x:Name="MainProgressRing" IsActive="{Binding IsLoading, UpdateSourceTrigger=PropertyChanged}"/>
         <Hub Name="MainHub">
+            <HubSection Name="MapHubSection">
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="MAP" Margin="0,-6.5,0,5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Maps:MapControl Grid.Row="0"
+                            Center="{Binding MapCenterGeopoint, Mode=TwoWay}"
+                            Name="MainMap" 
+                            ZoomLevel="{Binding ZoomLavel, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                            MapServiceToken="ArI68MgTvnNeI6ql1ulSeWxwHDRSTjOdkhowekMZNOgKEy-pMLxl8mzM9tAPihwH">
+                            <ContentControl x:Name="UserPointPossition"
+                                            ContentTemplate="{StaticResource UserPushpinControl}" 
+                                            Maps:MapControl.Location="{Binding UserPossition}" 
+                                            Visibility="{Binding UserPointVisibility}"
+                                            Maps:MapControl.NormalizedAnchorPoint="0.5,1"/>
+                            <Maps:MapItemsControl
+                                x:Name="DronePoints"
+                                ItemsSource="{Binding AvailableDrones}"
+                                ItemTemplate="{StaticResource DronePushpinControl}"/>
+                            <interactivity:Interaction.Behaviors>
+                                <mapbinding:MapShapeDrawBehavior LayerName="Lines" 
+                                                                 ItemsSource="{Binding DroneRoutes}" 
+                                                                 PathPropertyName="Route" 
+                                                                 ShapeColorPropertyName="RouteColor">
+                                    <mapbinding:MapShapeDrawBehavior.EventToCommandMappers>
+                                        <mapbinding:EventToCommandMapper EventName="MapTapped" CommandName="SelectCommand"/>
+                                    </mapbinding:MapShapeDrawBehavior.EventToCommandMappers>
+                                    <mapbinding:MapShapeDrawBehavior.ShapeDrawer>
+                                        <mapbinding:MapPolylineDrawer/>
+                                    </mapbinding:MapShapeDrawBehavior.ShapeDrawer>
+                                </mapbinding:MapShapeDrawBehavior>
+                            </interactivity:Interaction.Behaviors>
+                        </Maps:MapControl>
+                        <StackPanel Grid.Row="1">
+                            <Grid Name="SettingsGrid" Visibility="{Binding SettingsVisibility, UpdateSourceTrigger=PropertyChanged}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.Resources>
+                                    <Storyboard x:Key="ShowMapSettingsAction">
+                                        <DoubleAnimation Storyboard.TargetName="SettingsGrid" 
+                                                                 Storyboard.TargetProperty="Height"
+                                                                 From="0.0" To="100.0"
+                                                                 Duration="0:0:2"/>
+                                    </Storyboard>
+                                    <Storyboard x:Key="HideMapSettingsAction">
+                                        <DoubleAnimation Storyboard.TargetName="SettingsGrid" 
+                                                                 Storyboard.TargetProperty="Height"
+                                                                 From="100" To="0" Duration="0:0:2"/>
+                                    </Storyboard>
+                                </Grid.Resources>
+                                <TextBlock Text="Center item:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="18"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" 
+                                          VerticalAlignment="Center"
+                                          Margin="10,5"
+                                          ItemsSource="{Binding MapItemNamesCollection}"
+                                          SelectedItem="{Binding SelectedMapItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Zoom:" VerticalAlignment="Center" FontSize="18"/>
+                                <Slider Grid.Row="1" Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Margin="5,15,5,0"
+                                        Minimum="1" 
+                                        Maximum="20"
+                                        Value="{Binding ZoomLavel, Mode=TwoWay}"/>
+
+                                <TextBlock Grid.Row="2" 
+                                           Grid.Column="0" 
+                                           Text="Show routes:" 
+                                           VerticalAlignment="Center" 
+                                           FontSize="18"/>
+                                <ToggleSwitch Grid.Row="2" 
+                                              Grid.Column="1"
+                                              IsOn="{Binding ShowRoutes, Mode=TwoWay}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <AppBarButton HorizontalAlignment="Center" Command="{Binding ShowSettingsCommand}">
+                                    <AppBarButton.Icon>
+                                        <BitmapIcon UriSource="Assets/settings.png" Height="20"/>
+                                    </AppBarButton.Icon>
+                                </AppBarButton>
+                                <AppBarButton HorizontalAlignment="Center" Command="{Binding MoveToCenterCommand}">
+                                    <AppBarButton.Icon>
+                                        <BitmapIcon UriSource="Assets/center.png" Height="20"/>
+                                    </AppBarButton.Icon>
+                                </AppBarButton>
+                            </StackPanel>
+
+
+                        </StackPanel>
+                        
+                    </Grid>
+                </DataTemplate>
+            </HubSection>
+
+            <HubSection Name="DronesHubSection">
+                <HubSection.Header>
+                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
+                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
+                        <TextBlock Text="DRONES" Margin="0,-6.5,0,26.5" 
+                                   Style="{ThemeResource HeaderTextBlockStyle}" 
+                                   TextWrapping="NoWrap" 
+                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
+                    </StackPanel>
+                </HubSection.Header>
+                <DataTemplate>
+                    <ListView x:Name="DronesListView"
+                        AutomationProperties.AutomationId="ItemListViewSection3"
+                        AutomationProperties.Name="Items In Group"
+                        SelectionMode="None"
+                        IsItemClickEnabled="True"
+                        ContinuumNavigationTransitionInfo.ExitElementContainer="True"
+                        ItemsSource="{Binding Drones}" >
+                        <interactivity:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="ItemClick">
+                                <core:InvokeCommandAction Command="{Binding NavigateToDroneDetailsPageCommand}" 
+                                                           />
+                            </core:EventTriggerBehavior>
+                        </interactivity:Interaction.Behaviors>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!--<Border Grid.Column="0">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding DroneColor}"/>
+                                            </Border.Background>
+                                            <Image Width="79" Height="79" Source="{Binding DroneIcon}"/>
+                                        </Border>-->
+                                    <ToggleSwitch Grid.Column="0" 
+                                                      IsOn="{Binding IsAvailable, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                                                      VerticalAlignment="Center" OffContent="" OnContent=""/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="14.5,0,0,0">
+                                        <TextBlock Text="{Binding Name}" Style="{ThemeResource ListViewItemTextBlockStyle}">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush Color="{Binding DroneColor}"/>
+                                            </TextBlock.Foreground>
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Battery:" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
+                                            <Image Width="24" Source="{Binding BatteryIcon, UpdateSourceTrigger=PropertyChanged}" Margin="5,0"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding CurrentTask, UpdateSourceTrigger=PropertyChanged}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </DataTemplate>
+            </HubSection>
+
             <HubSection Name="SettingsHubSection">
                 <HubSection.Header>
                     <StackPanel Grid.Row="0" Margin="19,0,0,0">
@@ -67,7 +259,7 @@
                         <StackPanel Grid.Row="1"
                             Orientation="Horizontal" 
                             HorizontalAlignment="Center">
-                            <AppBarButton HorizontalAlignment="Center" Icon="Save" Command="{Binding SaveSettingsCommand}"/>
+                            <!--<AppBarButton HorizontalAlignment="Center" Icon="Save" Command="{Binding SaveSettingsCommand}"/>-->
                             <AppBarButton HorizontalAlignment="Center" Command="{Binding ConnectToServerCommand}">
                                 <AppBarButton.Icon>
                                     <BitmapIcon UriSource="Assets/connect.png" Height="20"/>
@@ -75,158 +267,6 @@
                             </AppBarButton>
                         </StackPanel>
                     </Grid>
-                </DataTemplate>
-            </HubSection>
-            
-            <HubSection Name="MapHubSection">
-                <HubSection.Header>
-                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
-                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
-                        <TextBlock Text="MAP" Margin="0,-6.5,0,5" 
-                                   Style="{ThemeResource HeaderTextBlockStyle}" 
-                                   TextWrapping="NoWrap" 
-                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
-                    </StackPanel>
-                </HubSection.Header>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Maps:MapControl Grid.Row="0"
-                            Center="{Binding MapCenterGeopoint, Mode=TwoWay}"
-                            Name="MainMap" 
-                            ZoomLevel="{Binding ZoomLavel, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                            MapServiceToken="ArI68MgTvnNeI6ql1ulSeWxwHDRSTjOdkhowekMZNOgKEy-pMLxl8mzM9tAPihwH">
-                            <ContentControl x:Name="UserPointPossition"
-                                            ContentTemplate="{StaticResource UserPushpinControl}" 
-                                            Maps:MapControl.Location="{Binding UserPossition}" 
-                                            Visibility="{Binding UserPointVisibility}"
-                                            Maps:MapControl.NormalizedAnchorPoint="0.5,1"/>
-                            <Maps:MapItemsControl
-                                x:Name="DronePoints"
-                                ItemsSource="{Binding AvailableDrones}"
-                                ItemTemplate="{StaticResource DronePushpinControl}"/>
-                            <interactivity:Interaction.Behaviors>
-                                <mapbinding:MapShapeDrawBehavior LayerName="Lines" 
-                                                                 ItemsSource="{Binding DroneRoutes}" 
-                                                                 PathPropertyName="Route" 
-                                                                 ShapeColorPropertyName="RouteColor">
-                                    <mapbinding:MapShapeDrawBehavior.EventToCommandMappers>
-                                        <mapbinding:EventToCommandMapper EventName="MapTapped" CommandName="SelectCommand"/>
-                                    </mapbinding:MapShapeDrawBehavior.EventToCommandMappers>
-                                    <mapbinding:MapShapeDrawBehavior.ShapeDrawer>
-                                        <mapbinding:MapPolylineDrawer/>
-                                    </mapbinding:MapShapeDrawBehavior.ShapeDrawer>
-                                </mapbinding:MapShapeDrawBehavior>
-                            </interactivity:Interaction.Behaviors>
-                        </Maps:MapControl>
-                        <StackPanel Grid.Row="1">
-                            <Grid Visibility="{Binding SettingsVisibility}">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <TextBlock Text="Center item:" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="18"/>
-                                <ComboBox Grid.Row="0" Grid.Column="1" 
-                                          VerticalAlignment="Center"
-                                          Margin="10,5"
-                                          ItemsSource="{Binding MapItemNamesCollection}"
-                                          SelectedItem="{Binding SelectedMapItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Zoom:" VerticalAlignment="Center" FontSize="18"/>
-                                <Slider Grid.Row="1" Grid.Column="1"
-                                        VerticalAlignment="Center"
-                                        Margin="5,15,5,0"
-                                        Minimum="1" 
-                                        Maximum="20"
-                                        Value="{Binding ZoomLavel, Mode=TwoWay}"/>
-
-                                <TextBlock Grid.Row="2" 
-                                           Grid.Column="0" 
-                                           Text="Show routes:" 
-                                           VerticalAlignment="Center" 
-                                           FontSize="18"/>
-                                <ToggleSwitch Grid.Row="2" 
-                                              Grid.Column="1"
-                                              IsOn="{Binding ShowRoutes, Mode=TwoWay}"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                            </Grid>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <AppBarButton HorizontalAlignment="Center" Command="{Binding ShowSettingsCommand}">
-                                    <AppBarButton.Icon>
-                                        <BitmapIcon UriSource="Assets/settings.png" Height="20"/>
-                                    </AppBarButton.Icon>
-                                </AppBarButton>
-                                <AppBarButton HorizontalAlignment="Center" Command="{Binding MoveToCenterCommand}">
-                                    <AppBarButton.Icon>
-                                        <BitmapIcon UriSource="Assets/center.png" Height="20"/>
-                                    </AppBarButton.Icon>
-                                </AppBarButton>
-                            </StackPanel>
-                        </StackPanel>
-                        
-                    </Grid>
-                </DataTemplate>
-            </HubSection>
-
-            <HubSection Name="DronesHubSection">
-                <HubSection.Header>
-                    <StackPanel Grid.Row="0" Margin="19,0,0,0">
-                        <ContentControl ContentTemplate="{StaticResource ApplicationTitleTemplate}"/>
-                        <TextBlock Text="DRONES" Margin="0,-6.5,0,26.5" 
-                                   Style="{ThemeResource HeaderTextBlockStyle}" 
-                                   TextWrapping="NoWrap" 
-                                   CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}" />
-                    </StackPanel>
-                </HubSection.Header>
-                <DataTemplate>
-                    <ListView x:Name="DronesListView"
-                        AutomationProperties.AutomationId="ItemListViewSection3"
-                        AutomationProperties.Name="Items In Group"
-                        SelectionMode="None"
-                        IsItemClickEnabled="True"
-                        ContinuumNavigationTransitionInfo.ExitElementContainer="True"
-                        ItemsSource="{Binding Drones}" >
-                        <interactivity:Interaction.Behaviors>
-                            <core:EventTriggerBehavior EventName="ItemClick">
-                                <core:InvokeCommandAction Command="{Binding NavigateToDroneDetailsPageCommand}" 
-                                                           />
-                            </core:EventTriggerBehavior>
-                        </interactivity:Interaction.Behaviors>
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-
-                                    <Border>
-                                        <Border.Background>
-                                            <SolidColorBrush Color="{Binding DroneColor}"/>
-                                        </Border.Background>
-                                        <Image Width="79" Height="79" Source="{Binding DroneIcon}"/>
-                                    </Border>
-                                    <!--<Border Background="{ThemeResource ListViewItemPlaceholderBackgroundThemeBrush}" Margin="0,9.5,0,0" Width="79" Height="79">
-                                        
-                                    </Border>-->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="14.5,0,0,0">
-                                        <TextBlock Text="{Binding Name}" Style="{ThemeResource ListViewItemTextBlockStyle}"/>
-                                        <TextBlock Text="{Binding Id}" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
-                                        <TextBlock Text="{Binding CurrentTask}" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
                 </DataTemplate>
             </HubSection>
         </Hub>

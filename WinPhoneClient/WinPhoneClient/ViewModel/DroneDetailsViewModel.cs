@@ -37,10 +37,7 @@ namespace WinPhoneClient.ViewModel
 
         public DroneInfo Model { get; set; }
 
-        public string DroneDescription
-        {
-            get { return $"{Model.DroneType} - '{Model.Id}'"; }
-        }
+        public string DroneDescription => $"{Model.Name} - '{Model.Id}'";
 
         public List<string> CommandsList
         {

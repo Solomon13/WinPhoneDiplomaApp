@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
-using Windows.Data.Json;
 using Windows.Devices.Geolocation;
 using Windows.Foundation;
-using Windows.Networking;
 using Windows.Storage;
-using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
@@ -21,7 +18,6 @@ using GalaSoft.MvvmLight.Messaging;
 using GalaSoft.MvvmLight.Threading;
 using WinPhoneClient.CommandExecuter;
 using WinPhoneClient.Common;
-using WinPhoneClient.Enums;
 using WinPhoneClient.Helpers;
 using WinPhoneClient.JSON;
 using WinPhoneClient.Model;
@@ -38,6 +34,9 @@ namespace WinPhoneClient.ViewModel
     public class MainViewModel : ViewModelBase
     {
         #region Fields
+
+        private Task _workingTask;
+        private CancellationTokenSource _cancellationToken;
         private readonly ServerAddapter _serverAddapter = new ServerAddapter();
         private Geopoint _userPossition;
         private Geopoint _mapCenterGeopoint;
@@ -49,6 +48,7 @@ namespace WinPhoneClient.ViewModel
         private string _userLogin;
         private string _userPassword;
         private bool _showRoutes = true;
+        private bool _isLoading;
         #endregion
         #region Commands
 
@@ -67,14 +67,30 @@ namespace WinPhoneClient.ViewModel
             _userLogin = _serverAddapter.Settings.Login;
             _userPassword = _serverAddapter.Settings.Password;
             UpdateCurrentLocation();
-            //CreateMapItemNamesList();
-            //CreateRoutesColection();
-
-            //_model.StartServerListening();
+            ConnectToServerCommand.Execute(null);
 
             #region Message Handlers
-            Messenger.Default.Register<DronePossitionChangedMessage>(this,async arg =>
+            Messenger.Default.Register<DroneAvailableChangedMessage>(this, async arg =>
             {
+                if (arg?.Drone != null)
+                {
+                    var updateDroneJson = new UpdateDroneJson();
+                    updateDroneJson.Json = updateDroneJson.CreateEmptyJsonObject();
+                    updateDroneJson.Name = arg.Drone.Name;
+                    updateDroneJson.Available = arg.Drone.IsAvailable ? 1.0 : 0.0;
+                    updateDroneJson.DroneType = arg.Drone.DroneType;
+                    updateDroneJson.Status = arg.Drone.Status;
+
+                    if (await Addapter.UpdateDroneAsync(new UpdateDroneInfoCommandExecuter(
+                        Addapter.Settings.Host,
+                        Addapter.Settings.Token.FormatedToken,
+                        arg.Drone.Id,
+                        updateDroneJson)))
+                        UpdateDroneAvailable(arg.Drone);
+                }
+            });
+            //Messenger.Default.Register<DronePossitionChangedMessage>(this,async arg =>
+            //{
                 //if (arg != null)
                 //{
                 //    var droneInfo = Drones.FirstOrDefault(d => d.Model == arg.ChangedDrone);
@@ -92,7 +108,7 @@ namespace WinPhoneClient.ViewModel
                         
                 //    }
                 //}
-            });
+            //});
 
             Messenger.Default.Register<ErrorMessage>(this, async msg =>
             {
@@ -112,7 +128,8 @@ namespace WinPhoneClient.ViewModel
         }
         #endregion
         #region Properties
-
+        public bool IsLoading { get { return _isLoading; }
+            set { Set(ref _isLoading, value); } }
         public ServerAddapter Addapter => _serverAddapter;
 
         public string UserLogin
@@ -139,7 +156,7 @@ namespace WinPhoneClient.ViewModel
             get { return _selectedMapItem; }
             set
             {
-                if (string.Compare(_selectedMapItem, value, StringComparison.CurrentCultureIgnoreCase) != 0)
+                if (!string.IsNullOrEmpty(value) && string.Compare(_selectedMapItem, value, StringComparison.CurrentCultureIgnoreCase) != 0)
                 {
                     _selectedMapItem = value;
                     var geopoint = FindCenterGeoposition(_selectedMapItem);
@@ -168,7 +185,7 @@ namespace WinPhoneClient.ViewModel
                 if (value)
                 {
                     foreach (var availableDrone in AvailableDrones)
-                         UpdateDroneRoute(availableDrone.Id, availableDrone.IsSelected);
+                        UpdateRouteSelection(availableDrone.Id, availableDrone.IsSelected);
                 }
                 else
                     DroneRoutes.Clear();
@@ -232,8 +249,49 @@ namespace WinPhoneClient.ViewModel
         }
         #endregion
 
-        #region Methods
+        #region Public Methods
+        public async Task StartServerListening()
+        {
+            _cancellationToken = new CancellationTokenSource();
+            while (!_cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(30000);
+                UpdateCurrentLocation();
+                await UpdateDroneCollection();
+            }
+        }
 
+        public void UpdateDroneAvailable(DroneInfo droneInfo)
+        {
+            if (droneInfo != null )
+            {
+                if (droneInfo.IsAvailable)
+                {
+                    if (!AvailableDrones.Contains(droneInfo))
+                        AvailableDrones.Add(droneInfo);
+                    if (ShowRoutes)
+                        UpdateRouteSelection(droneInfo.Id, droneInfo.IsSelected);
+                }
+                else
+                {
+                    if (AvailableDrones.Contains(droneInfo))
+                        AvailableDrones.Remove(droneInfo);
+                    RemoveDroneRoute(droneInfo.Id);
+                }
+                droneInfo.RaiseProperty("IsAvailable");
+                UpdateMapItemNamesList();
+            }
+        }
+
+        public async void StopServerListening()
+        {
+            if (_workingTask != null && _cancellationToken != null && !_workingTask.IsCompleted)
+            {
+                _cancellationToken.Token.ThrowIfCancellationRequested();
+                await _workingTask;
+            }
+
+        }
         public void SaveLocalSettings()
         {
             ApplicationData.Current.LocalSettings.Values[nameof(Addapter.Settings.Host)] = Addapter.Settings.Host;
@@ -255,13 +313,326 @@ namespace WinPhoneClient.ViewModel
                 UserPassword = Settings.DefaultPassword;
             SaveSettingsCommand.Execute(null);
         }
+       
+        public async Task UpdateDroneRoute(DroneInfo droneInfo, bool bLatestOnly = false)
+        {
+            if (droneInfo == null)
+                return;
+            DroneRoute route = null;
+            try
+            {
+                List<RouteJson> routes = null;
+                if (bLatestOnly && droneInfo.Route != null && droneInfo.Route.AddedTime > 0)
+                {
+                    routes = await Addapter.GetDroneRoutesAsync(new GetDroneRoutesCommandExecuter(
+                        Addapter.Settings.Host,
+                        Addapter.Settings.Token.FormatedToken,
+                        droneInfo.Id, 
+                        droneInfo.Route.AddedTime,
+                        Utils.GetNowUnixTime()));
+                }
+                else
+                {
+                    routes = await Addapter.GetDroneRoutesAsync(new GetDroneRoutesCommandExecuter(
+                        Addapter.Settings.Host, Addapter.Settings.Token.FormatedToken, droneInfo.Id));
+                }
+                if (routes != null)
+                {
+                    var points =
+                        routes.Select(
+                            r =>
+                                new BasicGeoposition
+                                {
+                                    Longitude = r.Longtitude,
+                                    Latitude = r.Latitude,
+                                    Altitude = r.Haight
+                                }).ToArray();
+
+                    if (points.Any())
+                    {
+                        if (bLatestOnly && droneInfo.Route != null)
+                            droneInfo.Route.AddPoints(points);                      
+                        else
+                            droneInfo.Route = new DroneRoute(droneInfo.Id, points, droneInfo.DroneColor);
+
+                        droneInfo.Route.AddedTime = routes.Max(r => Utils.ConvertToUnixTime(r.Added));
+
+                        if (ShowRoutes)
+                        {
+                            route = GetRoute(droneInfo.Id);
+                            if (route != null)
+                                droneInfo.Route.IsSelected = route.IsSelected;
+                            DroneRoutes.Add(droneInfo.Route);
+                        }
+                    }
+                }
+            }
+            catch (Exception) { }
+            finally
+            {
+                if (route != null)
+                    DroneRoutes.Remove(route);
+            }
+        }
+
+        public async Task UpdateDroneTasks(DroneInfo droneInfo, bool bLatestOnly = false)
+        {
+            if (droneInfo != null)
+            {
+                try
+                {
+                    List<TaskJson> tasks;
+                    if (bLatestOnly && droneInfo.Tasks.Any())
+                    {
+                        tasks = await Addapter.GetDroneCommandsAsync(
+                           new GetDroneTasksCommandExecuter(
+                               Addapter.Settings.Host,
+                               Addapter.Settings.Token.FormatedToken, 
+                               droneInfo.Id,
+                               droneInfo.Tasks.Max(t => t.AddedTime),
+                               Utils.GetNowUnixTime()));
+                    }
+                    else
+                    {
+                        tasks = await Addapter.GetDroneCommandsAsync(
+                            new GetDroneTasksCommandExecuter(
+                                Addapter.Settings.Host,
+                                Addapter.Settings.Token.FormatedToken, 
+                                droneInfo.Id));
+                    }
+                    if (tasks != null && tasks.Any())
+                    {
+                        if(!bLatestOnly)
+                            droneInfo.Tasks.Clear();
+                        foreach (var taskJson in tasks)
+                        {
+                            var task = new DroneTask((int)taskJson.CommandId, (int)taskJson.DroneId);
+                            task.ApplyJson(taskJson);
+                            var commandValues = await Addapter.GetTaskValuesAsync(new GetTaskValuesCommandExecuter(
+                                Addapter.Settings.Host, Addapter.Settings.Token.FormatedToken, task.TaskId));
+                            if (commandValues != null && commandValues.Any())
+                                task.Values = commandValues;
+                            droneInfo.Tasks.Add(task);
+                        }
+
+                        droneInfo.RaiseProperty("CurrentTask");
+                    }
+                }
+                catch (ArgumentException)
+                {
+                }
+            }
+        }
+
+        public async Task UpdateDroneSensors(DroneInfo droneInfo, bool bLatestOnly = false)
+        {
+            if (droneInfo != null)
+            {
+                try
+                {
+                    var sensors = await Addapter.GetDroneSensorsAsync(new GetDroneSensorsCommandExecuter(
+                        Addapter.Settings.Host, Addapter.Settings.Token.FormatedToken, droneInfo.Id));
+                    if (sensors != null && sensors.Any())
+                    {
+                        if (bLatestOnly && droneInfo.Sensors.Any())
+                        {
+                            var removedSensors =
+                                droneInfo.Sensors.Where(d => sensors.All(jsonSensor => (int) jsonSensor.Id != d.SensorId)).ToArray();
+                            if (removedSensors.Any())
+                            {
+                                foreach (var removedSensor in removedSensors)
+                                    droneInfo.Sensors.Remove(removedSensor);
+                            }
+                        }
+                        else
+                        {
+                            droneInfo.Sensors.Clear();
+                        }
+                        foreach (var sensorJson in sensors)
+                        {
+                            var sensor = (bLatestOnly ? droneInfo.Sensors.FirstOrDefault(s => s.SensorId == (int)sensorJson.Id) : null) ??
+                                                new SensorInfo((int)sensorJson.Id, (int)sensorJson.DroneId);
+                            sensor.ApplyJson(sensorJson);
+                            List<SensorValueJson> sensorValues;
+                            if (bLatestOnly && sensor.Values != null && sensor.Values.Any())
+                                sensorValues = await Addapter.GetSensorValuesAsync(
+                                    new GetSensorValuesCommandExecuter(
+                                    Addapter.Settings.Host,
+                                    Addapter.Settings.Token.FormatedToken,
+                                    (int)sensorJson.Id, 
+                                    sensor.Values.Max(v => Utils.ConvertToUnixTime(v.Added)),
+                                    Utils.GetNowUnixTime()));
+                            
+                            else
+                                sensorValues =  await Addapter.GetSensorValuesAsync(
+                                    new GetSensorValuesCommandExecuter(
+                                    Addapter.Settings.Host, 
+                                    Addapter.Settings.Token.FormatedToken, 
+                                    (int) sensorJson.Id));
+
+                            if (sensorValues != null && sensorValues.Any())
+                            {
+                                if (bLatestOnly)
+                                    sensor.AddValues(sensorValues);
+                                else
+                                    sensor.Values = new ObservableCollection<SensorValueJson>(sensorValues);
+                            }
+
+                            if(!droneInfo.Sensors.Contains(sensor))
+                                droneInfo.Sensors.Add(sensor);
+                        }
+                    }
+                }
+                catch (ArgumentException)
+                {
+                }
+            }
+        }
+
+        public void UpdateRouteSelection(int droneId, bool bSelected)
+        {
+            if (droneId >= 0)
+            {
+                DroneRoute route = GetRoute(droneId);
+                try
+                {
+                    var drone = Drones.FirstOrDefault(d => d.Id == droneId);
+                    if (drone?.Route != null)
+                    {
+                        drone.Route.IsSelected = bSelected;
+                        DroneRoutes.Add(drone.Route);
+                    }
+                }
+                catch (Exception) { }
+                finally
+                {
+                    if (route != null)
+                        DroneRoutes.Remove(route);
+                }
+            }
+        }
+
+        public void RemoveDroneRoute(int droneId)
+        {
+            if (droneId >= 0 && ShowRoutes)
+            {
+                var route = GetRoute(droneId);
+                if (route != null)
+                    DroneRoutes.Remove(route);
+            }
+        }
+
+        public DroneRoute GetRoute(int droneId)
+        {
+            if (droneId >= 0)
+                return DroneRoutes.FirstOrDefault(r => r.DroneId == droneId);
+            return null;
+        }
+
+        public async Task CreateDroneCollection()
+        {
+            if (Addapter.Settings.Token == null)
+                ConnectToServerCommand.Execute(null);
+            List<DroneJson> dronesJson = null;
+            try
+            {
+                if (Addapter.Settings.Token != null)
+                    dronesJson = await
+                        Addapter.GetAllDrones(new GetAllDronesCommandExecuter(Addapter.Settings.Host, Addapter.Settings.Token.FormatedToken));
+            }
+            catch (Exception)
+            {
+                return;
+            }
+            if (dronesJson != null && dronesJson.Any())
+            {
+                Drones.Clear();
+                DroneRoutes.Clear();
+                AvailableDrones.Clear();
+                foreach (var droneJson in dronesJson)
+                {
+                    try
+                    {
+                        var droneInfo = new DroneInfo((int)droneJson.Id);
+                        droneInfo.ApplyJson(droneJson);
+                        Drones.Add(droneInfo);
+                        await UpdateDroneRoute(droneInfo);
+                        await UpdateDroneTasks(droneInfo);
+                        await UpdateDroneSensors(droneInfo);
+                        UpdateDroneAvailable(droneInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        Messenger.Default.Send(new ErrorMessage {Error = e.Message});
+                    }
+                }
+                UpdateMapItemNamesList();
+            }
+        }
+
+        public void NavigateToSettingsHub()
+        {
+            var mainHub = Utils.GetMainHub();
+            if (mainHub != null)
+            {
+                var section = Utils.FindVisualChildren<HubSection>(mainHub).FirstOrDefault(s => s.Name == "SettingsHubSection");
+                if (section != null)
+                    mainHub.ScrollToSection(section);
+            }
+        }
+        #endregion
+        #region Private Methods
+
+        private async Task UpdateDroneCollection()
+        {
+            try
+            {
+                if (Addapter.Settings.Token != null)
+                {
+                    var drones = await
+                        Addapter.GetAllDrones(new GetAllDronesCommandExecuter(Addapter.Settings.Host,
+                            Addapter.Settings.Token.FormatedToken));
+                    if (drones != null && drones.Any())
+                    {
+                        var removedDrones = Drones.Where(d => drones.All(jsonDrone => (int)jsonDrone.Id != d.Id)).ToArray();
+                        if (removedDrones.Any())
+                        {
+                            foreach (var removedDrone in removedDrones)
+                                Drones.Remove(removedDrone);
+                        }
+
+                        foreach (var droneJson in drones)
+                        {
+                            var droneInfo = Drones.FirstOrDefault(d => d.Id == (int) droneJson.Id);
+                            bool bNew = false;
+                            if (droneInfo == null)
+                            {
+                                droneInfo = new DroneInfo((int) droneJson.Id);
+                                Drones.Add(droneInfo);
+                                bNew = true;
+                            }
+                            droneInfo.ApplyJson(droneJson);
+                            await UpdateDroneRoute(droneInfo, !bNew);
+                            await UpdateDroneTasks(droneInfo, !bNew);
+                            await UpdateDroneSensors(droneInfo, !bNew);
+                            UpdateDroneAvailable(droneInfo);
+                        }
+                       
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                //Messenger.Default.Send(new ErrorMessage {Error = "Can't update drones info. Please check connection to the server"});
+            }
+        }
         private void RaiseCanEecuteCommandSettingsTab()
         {
             SaveSettingsCommand.RaiseCanExecuteChanged();
             ConnectToServerCommand.RaiseCanExecuteChanged();
         }
         private async void UpdateCurrentLocation()
-        {   
+        {
             UserPointVisibility = Visibility.Collapsed;
             var geolocator = new Geolocator();
             var location = await geolocator.GetGeopositionAsync(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(60));
@@ -273,17 +644,14 @@ namespace WinPhoneClient.ViewModel
 
         private void UpdateMapItemNamesList()
         {
+            var selectedItem = SelectedMapItem;
             MapItemNamesCollection.Clear();
             MapItemNamesCollection.Add("User");
             foreach (var droneInfo in AvailableDrones)
                 MapItemNamesCollection.Add($"{droneInfo.Name} - {droneInfo.Id}");
 
-            if (!MapItemNamesCollection.Contains(_selectedMapItem))
-                SelectedMapItem = MapItemNamesCollection[0];
-            else
-            {
-                RaisePropertyChanged(nameof(SelectedMapItem));
-            }
+            _selectedMapItem = MapItemNamesCollection.Contains(selectedItem) ? selectedItem : MapItemNamesCollection[0];
+            RaisePropertyChanged(nameof(SelectedMapItem)); 
         }
 
         private Geopoint FindCenterGeoposition(string selectedName)
@@ -307,153 +675,11 @@ namespace WinPhoneClient.ViewModel
 
             return null;
         }
-
-        public async Task UpdateDroneRoute(int droneId, bool bIsSelected = false)
-        {
-            if (droneId >= 0)
-            {
-                var droneInfo = AvailableDrones.FirstOrDefault(d => d.Id == droneId);
-                if(droneInfo == null)
-                    return;
-
-                var route = GetRoute(droneId);
-                try
-                {
-                    var routes = await Addapter.GetDroneRoutesAsync(new GetRoutesInfoCommandExecuter(
-                        Addapter.Settings.Host, droneId, Addapter.Settings.Token.FormatedToken));
-                    var points =
-                        routes.Select(
-                            r =>
-                                new BasicGeoposition
-                                {
-                                    Longitude = r.Longtitude,
-                                    Latitude = r.Latitude,
-                                    Altitude = r.Haight
-                                }).ToArray();
-                    if (points.Any() && ShowRoutes)
-                        DroneRoutes.Add(new DroneRoute(droneId, points, droneInfo.DroneColor) { IsSelected = bIsSelected });
-
-                }
-                catch (ArgumentException) { }
-                finally 
-                {
-                    if (route != null)
-                        DroneRoutes.Remove(route);
-                }
-            }
-        }
-
-        public void UpdateRouteSelection(int droneId, Color color)
-        {
-            if (droneId >= 0)
-            {
-                var route = GetRoute(droneId);
-                if (route != null)
-                {
-                    var points = route.Route.Positions;
-                    DroneRoutes.Remove(route);
-                    DroneRoutes.Add(new DroneRoute(droneId, points, color));
-                }
-            }
-        }
-
-        public void RemoveDroneRoute(int droneId)
-        {
-            if (droneId >= 0 && ShowRoutes)
-            {
-                var route = GetRoute(droneId);
-                if (route != null)
-                    DroneRoutes.Remove(route);
-            }
-        }
-
-        public DroneRoute GetRoute(int droneId)
-        {
-            if (droneId >= 0)
-                return DroneRoutes.FirstOrDefault(r => r.DroneId == droneId);
-            return null;
-        }
-
-        public async void UpdateDroneCollection()
-        {
-            if (Addapter.Settings.Token == null)
-            {
-                if (Utils.MainHubNavivateToSection("SettingsHubSection"))
-                    Messenger.Default.Send(new ErrorMessage {Error = "Server connection isn't esteblished"});
-
-                return;
-            }
-
-            var dronesJson = await 
-                Addapter.GetAllDrones(new GetAllDronesInfoCommandExecuter(Addapter.Settings.Host,
-                    Addapter.Settings.Token.FormatedToken));
-            if (dronesJson.Any())
-            {
-                Drones.Clear();
-                DroneRoutes.Clear();
-                AvailableDrones.Clear();
-                foreach (var droneJson in dronesJson)
-                {
-                    try
-                    {
-                        var droneInfo = new DroneInfo((int)droneJson.Id);
-                        droneInfo.ApplyJson(droneJson);
-                        Drones.Add(droneInfo);
-                        try
-                        {
-                            var commands = await Addapter.GetDroneCommandsAsync( 
-                                new GetCommandsInfoCommandExecuter(Addapter.Settings.Host, droneInfo.Id,
-                                Addapter.Settings.Token.FormatedToken));
-                            if (commands.Any())
-                            {
-                                droneInfo.Tasks.Clear();
-                                foreach (var commandJson in commands)
-                                {
-                                    var command = new DroneTask((int) commandJson.CommandId, (int) commandJson.DroneId);
-                                    command.ApplyJson(commandJson);
-                                    droneInfo.Tasks.Add(command);
-                                }
-
-                                droneInfo.RaiseProperty("CurrentTask");
-                            }
-                        }
-                        catch (ArgumentException)
-                        {
-                        }
-                        
-
-                        if (droneInfo.IsAvailable)
-                        {
-                            AvailableDrones.Add(droneInfo);
-                            if(ShowRoutes)
-                                await UpdateDroneRoute(droneInfo.Id);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Messenger.Default.Send(new ErrorMessage {Error = e.Message});
-                    }
-                }
-                UpdateMapItemNamesList();
-            }
-
-        }
-
-        //private void CreateRoutesColection()
-        //{
-        //    DroneRoutes.Clear();
-        //    foreach (var droneInfo in Drones)
-        //    {
-        //        if (droneInfo.Model.Locations != null && droneInfo.Model.Locations.Any())
-        //            DroneRoutes.Add(new DroneRoute(droneInfo.Id, droneInfo.Model.Locations, droneInfo.DroneColor));
-        //    }
-        //}
-
         private async Task AnimatedChangePossitionAsync(DroneInfo drone, Geopoint startPosition, Geopoint endPossition, int stepCount = 25)
         {
             if (drone == null || startPosition == null || endPossition == null || stepCount <= 0)
                 return;
-  
+
             await Task.Factory.StartNew(async () =>
             {
                 var startPoint = startPosition.Position;
@@ -469,19 +695,7 @@ namespace WinPhoneClient.ViewModel
             }
             );
         }
-
-        public void NavigateToSettingsHub()
-        {
-            var mainHub = Utils.GetMainHub();
-            if (mainHub != null)
-            {
-                var section = Utils.FindVisualChildren<HubSection>(mainHub).FirstOrDefault(s => s.Name == "SettingsHubSection");
-                if (section != null)
-                    mainHub.ScrollToSection(section);
-            }
-        }
         #endregion
-
         #region Command Handlers
 
         public RelayCommand ConnectToServerCommand
@@ -490,6 +704,8 @@ namespace WinPhoneClient.ViewModel
             {
                 return _connectToServerCommand ?? (_connectToServerCommand = new RelayCommand(async () =>
                 {
+                    IsLoading = true;
+                    StopServerListening();
                     SaveSettingsCommand.Execute(null);
                     var token = await _serverAddapter.ConnectToServerAsync(new ConnectToServerCommandExecuter(
                         Host, 
@@ -499,7 +715,13 @@ namespace WinPhoneClient.ViewModel
                         IAsyncOperation<IUICommand> dialogTask = null;
                         var messageBox = new MessageDialog($"Can't connect to server {Host}");
                         messageBox.Commands.Add(new UICommand("Try again", command => ConnectToServerCommand.Execute(null)));
-                        messageBox.Commands.Add(new UICommand("Cancel", command => dialogTask?.Cancel()));
+                        messageBox.Commands.Add(new UICommand("Cancel", command =>
+                        {
+                            //todo Stop updating data here
+                            IsLoading = false;
+                            Utils.MainHubNavivateToSection("SettingsHubSection");
+                            dialogTask?.Cancel();
+                        }));
                         dialogTask = messageBox.ShowAsync();
                         try
                         {
@@ -507,10 +729,13 @@ namespace WinPhoneClient.ViewModel
                         }
                         catch (TaskCanceledException)
                         {
+                            return;
                         }
                     }
-                    UpdateDroneCollection();
+                    await CreateDroneCollection();
                     RaiseCanEecuteCommandSettingsTab();
+                    IsLoading = false;
+                    _workingTask = StartServerListening();
                 }, () => SaveSettingsCommand.CanExecute(null)));
             }
         }
@@ -523,6 +748,20 @@ namespace WinPhoneClient.ViewModel
                     SettingsVisibility = SettingsVisibility == Visibility.Collapsed
                         ? Visibility.Visible
                         : Visibility.Collapsed;
+                    //todo doesn't work(((
+                    //var mainHub = Utils.GetMainHub();
+                    //if (mainHub != null)
+                    //{
+                    //    var grid = Utils.FindVisualChildren<Grid>(mainHub).FirstOrDefault(g => g.Name == "SettingsGrid");
+                    //    if (grid != null)
+                    //    {
+                    //        IsLoading = !IsLoading;
+                    //        var storyboard = (Storyboard) (IsLoading
+                    //            ? grid.Resources["ShowMapSettingsAction"]
+                    //            : grid.Resources["HideMapSettingsAction"]);
+                    //        storyboard?.Begin();
+                    //    }
+                    //}
                 }));
             }
         }
@@ -593,10 +832,7 @@ namespace WinPhoneClient.ViewModel
                            if (droneInfo != null)
                            {
                                droneInfo.IsSelected = arg.Value;
-                               UpdateRouteSelection(droneInfo.Id, arg.Value ? Colors.Red : droneInfo.DroneColor);
-                               var route = GetRoute(droneInfo.Id);
-                               if(route != null)
-                                  route.IsSelected = arg.Value;
+                               UpdateRouteSelection(droneInfo.Id, arg.Value);
                            }
                        }));
             }

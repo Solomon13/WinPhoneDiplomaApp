@@ -5,7 +5,7 @@ namespace WinPhoneClient.JSON
 {
     public class TokenResponceJson : IBaseJsonValue
     {
-        private static string TokenKey = "token";
+        private static string TokenKey = "data";
 
         public string Token
         {

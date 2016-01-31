@@ -33,7 +33,7 @@
             </DataTemplate>
 
             <DataTemplate x:Key="DronePushpinControl">
-                <Grid MaxWidth="150"   
+                <Grid  
                       maps:MapControl.Location="{Binding DroneGeopoint}"
                       maps:MapControl.NormalizedAnchorPoint="{Binding Anchor}">
                     <Grid.Resources>
@@ -59,8 +59,11 @@
                             <Image Height="24" Width="24" Margin="5" Source="{Binding DroneIcon}"/>
                             <StackPanel Visibility="{Binding Path=DetailsVisibility}">
                                 <TextBlock Text="{Binding Path=Name}" FontWeight="Bold" FontSize="12" Foreground="Black"/>
-                                <TextBlock Text="{Binding Path=Id}" FontSize="12" Foreground="Black"/>
-                                <TextBlock Text="{Binding Path=CurrentTask}" FontSize="12" Foreground="Black"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Battery:" FontSize="12" Foreground="Black" Margin="0,5"/>
+                                    <Image Width="24" Source="{Binding BatteryIcon, UpdateSourceTrigger=PropertyChanged}" Margin="5,0"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Path=CurrentTask, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Foreground="Black"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>

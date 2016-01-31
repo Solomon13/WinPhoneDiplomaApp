@@ -1,42 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Windows.Data.Json;
-using WinPhoneClient.Enums;
 
 namespace WinPhoneClient.JSON
 {
-    public class DroneJson : IBaseJsonValue
+    public class SensorValueJson : IBaseJsonValue
     {
         private static string IdKey = "id";
-        private static string NameKey = "name";
         private static string LatitudeKey = "latitude";
         private static string LongtitudeKey = "longitude";
-        private static string StatusKey = "status";
-        private static string BatteryKey = "battery";
-        private static string TypeKey = "type";
-        private static string AvailableKey = "available";
+        private static string ValueKey = "value";
+        private static string SensorIdKey = "sensor_id";
+        private static string AddedKey = "added";
         private static string CreatedTimeKey = "created_at";
         private static string UpdatedTimeKey = "updated_at";
         private static string DeletedTimeKey = "deleted_at";
+
         public JsonObject Json { get; set; }
         public JsonObject CreateEmptyJsonObject()
         {
             return new JsonObject
             {
                 new KeyValuePair<string, IJsonValue>(IdKey, JsonValue.CreateStringValue(string.Empty)),
-                new KeyValuePair<string, IJsonValue>(NameKey, JsonValue.CreateStringValue(string.Empty)),
                 new KeyValuePair<string, IJsonValue>(LatitudeKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(LongtitudeKey, JsonValue.CreateNumberValue(0)),
-                new KeyValuePair<string, IJsonValue>(StatusKey, JsonValue.CreateStringValue(string.Empty)),
-                new KeyValuePair<string, IJsonValue>(TypeKey, JsonValue.CreateStringValue(string.Empty)),
-                new KeyValuePair<string, IJsonValue>(AvailableKey, JsonValue.CreateNumberValue(0)),
+                new KeyValuePair<string, IJsonValue>(ValueKey, JsonValue.CreateNumberValue(0)),
+                new KeyValuePair<string, IJsonValue>(AddedKey, JsonValue.CreateStringValue(string.Empty)),
+                new KeyValuePair<string, IJsonValue>(SensorIdKey, JsonValue.CreateNumberValue(0)),
                 new KeyValuePair<string, IJsonValue>(CreatedTimeKey, JsonValue.CreateStringValue(string.Empty)),
                 new KeyValuePair<string, IJsonValue>(UpdatedTimeKey, JsonValue.CreateStringValue(string.Empty)),
-                new KeyValuePair<string, IJsonValue>(DeletedTimeKey, JsonValue.CreateStringValue(string.Empty))
+                new KeyValuePair<string, IJsonValue>(DeletedTimeKey, JsonValue.CreateStringValue(string.Empty)),
             };
         }
 
-        public double Id
+        public double SensorValueId
         {
             get
             {
@@ -48,36 +44,6 @@ namespace WinPhoneClient.JSON
             {
                 if (Json != null && Json.ContainsKey(IdKey))
                     Json[IdKey] = JsonValue.CreateNumberValue(value);
-            }
-        }
-
-        public double Battery
-        {
-            get
-            {
-                if (Json != null && Json.ContainsKey(BatteryKey))
-                    return Json[BatteryKey].GetNumber();
-                return double.NaN;
-            }
-            set
-            {
-                if (Json != null && Json.ContainsKey(BatteryKey))
-                    Json[BatteryKey] = JsonValue.CreateNumberValue(value);
-            }
-        }
-
-        public string Name
-        {
-            get
-            {
-                if (Json != null && Json.ContainsKey(NameKey))
-                    return Json[NameKey].GetString();
-                return null;
-            }
-            set
-            {
-                if (Json != null && Json.ContainsKey(NameKey))
-                    Json[NameKey] = JsonValue.CreateStringValue(value);
             }
         }
 
@@ -96,6 +62,21 @@ namespace WinPhoneClient.JSON
             }
         }
 
+        public double SensorId
+        {
+            get
+            {
+                if (Json != null && Json.ContainsKey(SensorIdKey))
+                    return Json[SensorIdKey].GetNumber();
+                return double.NaN;
+            }
+            set
+            {
+                if (Json != null && Json.ContainsKey(SensorIdKey))
+                    Json[SensorIdKey] = JsonValue.CreateNumberValue(value);
+            }
+        }
+
         public double Longtitude
         {
             get
@@ -111,51 +92,20 @@ namespace WinPhoneClient.JSON
             }
         }
 
-        public DroneStatus Status
+        public double Value
         {
             get
             {
-                if (Json != null && Json.ContainsKey(StatusKey))
-                    return (DroneStatus)Enum.Parse(typeof(DroneStatus), Json[StatusKey].GetString());
-                return DroneStatus.inactive;
+                if (Json != null && Json.ContainsKey(ValueKey))
+                    return Json[ValueKey].GetNumber();
+                return double.NaN;
             }
             set
             {
-                if (Json != null && Json.ContainsKey(StatusKey))
-                    Json[StatusKey] = JsonValue.CreateStringValue(value.ToString());
+                if (Json != null && Json.ContainsKey(ValueKey))
+                    Json[ValueKey] = JsonValue.CreateNumberValue(value);
             }
         }
-
-        public DroneType DroneType
-        {
-            get
-            {
-                if (Json != null && Json.ContainsKey(TypeKey))
-                    return (DroneType) Enum.Parse(typeof(DroneType), Json[TypeKey].GetString());
-                return DroneType.aircraft;
-            }
-            set
-            {
-                if (Json != null && Json.ContainsKey(TypeKey))
-                    Json[TypeKey] = JsonValue.CreateStringValue(value.ToString());
-            }
-        }
-
-        public bool Available
-        {
-            get
-            {
-                if (Json != null && Json.ContainsKey(AvailableKey))
-                    return Json[AvailableKey].GetNumber() != 0;
-                return false;
-            }
-            set
-            {
-                if (Json != null && Json.ContainsKey(AvailableKey))
-                    Json[AvailableKey] = JsonValue.CreateNumberValue(value ? 1 : 0);
-            }
-        }
-
         public string CreatedAt
         {
             get
@@ -198,6 +148,21 @@ namespace WinPhoneClient.JSON
             {
                 if (Json != null && Json.ContainsKey(DeletedTimeKey))
                     Json[DeletedTimeKey] = JsonValue.CreateStringValue(value);
+            }
+        }
+
+        public string Added
+        {
+            get
+            {
+                if (Json != null && Json.ContainsKey(AddedKey))
+                    return Json[AddedKey].GetString();
+                return null;
+            }
+            set
+            {
+                if (Json != null && Json.ContainsKey(AddedKey))
+                    Json[AddedKey] = JsonValue.CreateStringValue(value);
             }
         }
     }

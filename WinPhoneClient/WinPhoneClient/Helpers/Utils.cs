@@ -106,5 +106,25 @@ namespace WinPhoneClient.Helpers
 
             return null;
         }
+
+        public static int GetNowUnixTime()
+        {
+            return (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+        }
+
+        public static int ConvertToUnixTime(string dateTimeString)
+        {
+            if (!string.IsNullOrEmpty(dateTimeString))
+            {
+                DateTime datetime;
+                if (DateTime.TryParse(dateTimeString, out datetime))
+                {
+                    DateTime sTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    return (Int32) (datetime - sTime).TotalSeconds;
+                }
+            }
+
+            return 0;
+        }
     }
 }

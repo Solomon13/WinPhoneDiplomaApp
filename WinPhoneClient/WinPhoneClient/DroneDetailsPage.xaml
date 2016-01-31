@@ -64,40 +64,102 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0"
                                        Grid.Column="0"
-                                       Text="Current task:"
+                                       Text="Drone name:"
                                        Style="{ThemeResource TitleTextBlockStyle}"
                                        Margin="10,0"/>
                                 <TextBlock Grid.Row="0"
+                                       Grid.Column="1"
+                                       Text="{Binding Model.Name}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="Drone id:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="1"
+                                       Grid.Column="1"
+                                       Text="{Binding Model.Id}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="0"
+                                       Text="Possition:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="2"
+                                       Grid.Column="1"
+                                       Text="{Binding Model.FormatedPossition}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+                                <TextBlock Grid.Row="3"
+                                       Grid.Column="0"
+                                       Text="Drone type:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="3"
+                                       Grid.Column="1"
+                                       Text="{Binding Model.DroneType}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+                                
+                                <TextBlock Grid.Row="4"
+                                       Grid.Column="0"
+                                       Text="Current task:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="4"
                                        Grid.Column="1"
                                        Text="{Binding Model.CurrentTask}"
                                        Style="{ThemeResource TitleTextBlockStyle}" 
                                        HorizontalAlignment="Center"/>
 
-                                <TextBlock Grid.Row="1"
+                                <TextBlock Grid.Row="5"
                                        Grid.Column="0"
-                                       Text="Possition:"
+                                       Text="Sensors count:"
                                        Style="{ThemeResource TitleTextBlockStyle}"
                                        Margin="10,0"/>
-                                <TextBlock Grid.Row="1"
+                                <TextBlock Grid.Row="5"
                                        Grid.Column="1"
-                                       Text="{Binding Model.FormatedPossition}"
+                                       Text="{Binding Model.SensorsCount}"
                                        Style="{ThemeResource TitleTextBlockStyle}" 
                                        HorizontalAlignment="Center"/>
 
-                                <TextBlock Grid.Row="2"
+                                <TextBlock Grid.Row="6"
                                        Grid.Column="0"
-                                       Text="Polution level:"
+                                       Text="Battery:"
                                        Style="{ThemeResource TitleTextBlockStyle}"
                                        Margin="10,0"/>
-                                <TextBlock Grid.Row="2"
+                                <TextBlock Grid.Row="6"
                                        Grid.Column="1"
-                                       Text="{Binding Model.PolutionLevel}"
+                                       Text="{Binding Model.BatteryLevel}"
                                        Style="{ThemeResource TitleTextBlockStyle}" 
                                        HorizontalAlignment="Center"/>
+
+
+                                <TextBlock Grid.Row="7"
+                                       Grid.Column="0"
+                                       Text="Status:"
+                                       Style="{ThemeResource TitleTextBlockStyle}"
+                                       Margin="10,0"/>
+                                <TextBlock Grid.Row="7"
+                                       Grid.Column="1"
+                                       Text="{Binding Model.Status}"
+                                       Style="{ThemeResource TitleTextBlockStyle}" 
+                                       HorizontalAlignment="Center"/>
+
+
                             </Grid>
                         </Border>
                     </Grid>
@@ -185,10 +247,10 @@
                 <DataTemplate>
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -202,20 +264,47 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" 
                                     Style="{ThemeResource TitleTextBlockStyle}"
-                                    Text="Sensor:" 
+                                    Text="Sensors:" 
                                     Margin="5,0"
                                     VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="1"/>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding Model.Sensors}" 
+                                          SelectedItem="{Binding Model.SelectedSensor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding SensorName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </Grid>
-
-                            <TextBlock Grid.Row="1"
-                                FontSize="24" 
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Text="SENSOR CONTENT"/>
                         </Grid>
+                        <ListView Grid.Row="1" x:Name="SensorValuesListView"
+                        SelectionMode="None"
+                        IsItemClickEnabled="False"
+                        ContinuumNavigationTransitionInfo.ExitElementContainer="True"
+                        ItemsSource="{Binding Model.SelectedSensorValues, UpdateSourceTrigger=PropertyChanged}" >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Row="1" 
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Top" Margin="14.5,0,0,0">
+                                            <TextBlock Text="{Binding Added}" Style="{ThemeResource ListViewItemTextBlockStyle}" Foreground="Blue"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Value:" Style="{ThemeResource ListViewItemContentTextBlockStyle}" 
+                                                           Foreground="{ThemeResource PhoneMidBrush}"/>
+                                                <TextBlock Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" 
+                                                           Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"
+                                                           Margin="5,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <StackPanel Grid.Row="2" 
                             HorizontalAlignment="Center">
                             <ToggleSwitch>
                                 <ToggleSwitch.HeaderTemplate>

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.Data.Json;
-using Windows.Devices.Geolocation;
 using GalaSoft.MvvmLight.Messaging;
 using WinPhoneClient.CommandExecuter;
 using WinPhoneClient.Common;
@@ -17,7 +14,6 @@ namespace WinPhoneClient.Model
     {
         //private Task _workingTask;
         //private CancellationTokenSource _cancellationToken;
-        private Settings _settings = new Settings();
         //private List<Drone> _dronesList = new List<Drone>()
         //{
         //    new Drone (DroneType.Uterus){
@@ -59,10 +55,8 @@ namespace WinPhoneClient.Model
         //    }
         //}
         //;
-        public Settings Settings
-        {
-            get { return _settings; }
-        }
+        public Settings Settings { get; } = new Settings();
+
         #region Methods
 
         public async void UpdateDroneList()
@@ -75,7 +69,7 @@ namespace WinPhoneClient.Model
                 return;
             }
 
-            var drones = await GetAllDrones(new GetAllDronesInfoCommandExecuter(Settings.Host, Settings.Token.FormatedToken));
+            var drones = await GetAllDrones(new GetAllDronesCommandExecuter(Settings.Host, Settings.Token.FormatedToken));
             if (drones.Any())
             {
                 
@@ -89,7 +83,7 @@ namespace WinPhoneClient.Model
             return Settings.Token;
         }
         #region GetInfo 
-        public async Task<DroneJson> GetDroneByIdAsync(GetDroneInfoCommandExecuter executer)
+        public async Task<DroneJson> GetDroneByIdAsync(GetDroneCommandExecuter executer)
         {
             var baseJson = await Execute(executer);
             if (baseJson != null)
@@ -107,7 +101,7 @@ namespace WinPhoneClient.Model
             return null;
         }
 
-        public async Task<List<DroneJson>> GetAllDrones(GetAllDronesInfoCommandExecuter executer)
+        public async Task<List<DroneJson>> GetAllDrones(GetAllDronesCommandExecuter executer)
         {
             var baseJson = await Execute(executer);
             if (baseJson != null)
@@ -116,16 +110,16 @@ namespace WinPhoneClient.Model
             return null;
         }
 
-        public async Task<List<CommandJson>> GetDroneCommandsAsync(GetCommandsInfoCommandExecuter executer)
+        public async Task<List<TaskJson>> GetDroneCommandsAsync(GetDroneTasksCommandExecuter executer)
         {
             var baseJson = await Execute(executer);
             if (baseJson != null && baseJson.Result)
-                return Utils.GetArrayFromJson<CommandJson>(baseJson);
+                return Utils.GetArrayFromJson<TaskJson>(baseJson);
 
             return null;
         }
 
-        public async Task<List<SensorJson>> GetDroneSensorsAsync(GetSensorsInfoCommandExecuter executer)
+        public async Task<List<SensorJson>> GetDroneSensorsAsync(GetDroneSensorsCommandExecuter executer)
         {
             var baseJson = await Execute(executer);
             if (baseJson != null)
@@ -133,11 +127,29 @@ namespace WinPhoneClient.Model
             return null;
         }
 
-        public async Task<List<RouteJson>> GetDroneRoutesAsync(GetRoutesInfoCommandExecuter executer)
+        public async Task<List<RouteJson>> GetDroneRoutesAsync(GetDroneRoutesCommandExecuter executer)
         {
             var baseJson = await Execute(executer);
             if (baseJson != null)
                 return Utils.GetArrayFromJson<RouteJson>(baseJson);
+
+            return null;
+        }
+
+        public async Task<List<TaskValueJson>> GetTaskValuesAsync(GetTaskValuesCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer);
+            if (baseJson != null)
+                return Utils.GetArrayFromJson<TaskValueJson>(baseJson);
+
+            return null;
+        }
+
+        public async Task<List<SensorValueJson>> GetSensorValuesAsync(GetSensorValuesCommandExecuter executer)
+        {
+            var baseJson = await Execute(executer);
+            if (baseJson != null)
+                return Utils.GetArrayFromJson<SensorValueJson>(baseJson);
 
             return null;
         }
@@ -152,15 +164,14 @@ namespace WinPhoneClient.Model
                 await executer.ExecuteAsync();
         }
         #endregion
+        #region Update items
 
-        public async void UpdateDrone(UpdateDroneInfoCommandExecuter executer)
+        public async Task<bool> UpdateDroneAsync(UpdateDroneInfoCommandExecuter executer)
         {
-            var json = await Execute(executer);
-            if (json != null)
-            {
-                int a = 0;
-            }
+            var baseJson = await Execute(executer);
+            return baseJson?.Result != null && baseJson.Result;
         }
+        #endregion
 
         private async Task<BaseJson> Execute(ICommandExecuter executer)
         {
@@ -172,9 +183,7 @@ namespace WinPhoneClient.Model
                 if (baseJson != null)
                 {
                     if (!baseJson.Result)
-                    {
-                        throw new ArgumentException(baseJson.ErrorMessage);
-                    }
+                        return null;
                     return baseJson;
                 }
             }

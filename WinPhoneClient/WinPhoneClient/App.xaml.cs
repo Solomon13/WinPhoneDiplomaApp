@@ -132,7 +132,6 @@ namespace WinPhoneClient
 
             var viewModel = MainPage.DataContext as MainViewModel;
             viewModel?.LoadLocalSttings();
-            viewModel?.NavigateToSettingsHub();
 
             rootFrame.ContentTransitions = _transitions ?? new TransitionCollection() { new NavigationThemeTransition() };
             rootFrame.Navigated -= RootFrame_FirstNavigated;
