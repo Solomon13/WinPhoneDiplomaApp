@@ -102,6 +102,7 @@
     <Compile Include="Enums\DroneStatus.cs" />
     <Compile Include="Enums\DroneType.cs" />
     <Compile Include="Enums\SensorType.cs" />
+    <Compile Include="Enums\VideoPlayStatus.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="JSON\BaseJson.cs" />
     <Compile Include="JSON\TaskJson.cs" />
@@ -155,6 +156,7 @@
     <Content Include="Assets\SplashScreen.scale-240.png" />
     <Content Include="Assets\Square71x71Logo.scale-240.png" />
     <Content Include="Assets\StoreLogo.scale-240.png" />
+    <Content Include="Assets\video.mp4" />
     <Content Include="Assets\WideLogo.scale-240.png" />
     <Content Include="Assets\quadcopter.png" />
     <Content Include="Assets\settings.png" />
@@ -258,6 +260,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

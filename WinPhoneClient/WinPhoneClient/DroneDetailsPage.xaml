@@ -190,27 +190,32 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            
+
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
                                 <TextBlock Grid.Column="0" 
                                     Style="{ThemeResource TitleTextBlockStyle}"
                                     Text="Select command:" 
                                     Margin="5,0"
                                     VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="1" 
+                                <ComboBox Grid.Column="1" Grid.Row="0"
                                           ItemsSource="{Binding CommandsList}"
                                           SelectedItem="{Binding SelectedCommand}"/>
+
+                                <TextBlock Grid.Column="0" Grid.Row="1"
+                                    Text="Enter new coordinate"
+                                           Margin="5,0"
+                                           Style="{ThemeResource TitleTextBlockStyle}"/>
+                                <TextBox Grid.Column="1" Grid.Row="1"
+                                         Margin="5"/>
                             </Grid>
-                            
-                            <TextBlock Grid.Row="1"
-                                FontSize="24" 
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Text="COMMAND CONTENT"/>
                         </Grid>
                         
                         <StackPanel Grid.Row="1"
@@ -339,7 +344,7 @@
                     </StackPanel>
                 </HubSection.Header>
                 <DataTemplate>
-                    <ListView x:Name="DronesListView"
+                    <!--<ListView x:Name="DronesListView"
                         AutomationProperties.AutomationId="ItemListViewSection3"
                         AutomationProperties.Name="Items In Group"
                         SelectionMode="None"
@@ -353,8 +358,7 @@
                         </interactivity:Interaction.Behaviors>
                         <ListView.ItemTemplate>
                             <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
+                                --><!--<Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
@@ -368,11 +372,30 @@
                                         <TextBlock Text="Time" Style="{ThemeResource ListViewItemTextBlockStyle}"/>
                                         <TextBlock Text="Size" Style="{ThemeResource ListViewItemContentTextBlockStyle}" Foreground="{ThemeResource PhoneMidBrush}"/>
                                         <TextBlock Text="Details" Style="{ThemeResource ListViewItemSubheaderTextBlockStyle}"/>
-                                    </StackPanel>
-                                </Grid>
+                                    </StackPanel>--><!--
+                                
+
                             </DataTemplate>
                         </ListView.ItemTemplate>
-                    </ListView>
+                    </ListView>-->
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <MediaElement Grid.Row="0"
+                            Source="Assets/video.mp4" HorizontalAlignment="Center" MinHeight="400" MinWidth="240"
+                            Name="VideoMediaElement" AutoPlay="False"/>
+                        <StackPanel Grid.Row="1"
+                            Orientation="Horizontal" HorizontalAlignment="Center">
+                            <AppBarButton HorizontalAlignment="Center" Command="{Binding PlayVideoCommand}" CommandParameter="{Binding ElementName=VideoMediaElement}"
+                                          Icon="Play"/>
+                            <AppBarButton HorizontalAlignment="Center" Command="{Binding PauseVideoCommand}" CommandParameter="{Binding ElementName=VideoMediaElement}"
+                                          Icon="Pause"/>
+                            <AppBarButton HorizontalAlignment="Center" Icon="Stop"
+                                          Command="{Binding StopVideoCommand}" CommandParameter="{Binding ElementName=VideoMediaElement}"/>
+                        </StackPanel>
+                    </Grid>
                 </DataTemplate>
             </HubSection>
         </Hub>

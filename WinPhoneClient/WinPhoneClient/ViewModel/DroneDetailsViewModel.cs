@@ -15,6 +15,7 @@ namespace WinPhoneClient.ViewModel
         #region Fields
 
         private string _selectedCommand = string.Empty;
+        private VideoPlayStatus _videoStatus = VideoPlayStatus.Stoped;
         #endregion
 
         #region Constructor
@@ -30,11 +31,22 @@ namespace WinPhoneClient.ViewModel
 
         private RelayCommand _sendCommand;
         private RelayCommand _openSettingsCommand;
-        private RelayCommand<ItemClickEventArgs> _playVideoCommand;
+        private RelayCommand<MediaElement> _playVideoCommand;
+        private RelayCommand<MediaElement> _pauseVideoCommand;
+        private RelayCommand<MediaElement> _stopVideoCommand;
         #endregion
 
         #region Properties
 
+        public VideoPlayStatus VideoStatus
+        {
+            get { return _videoStatus;}
+            set
+            {
+                Set(ref _videoStatus, value);
+                RaiseCanExecuteCommands();
+            }
+        }
         public DroneInfo Model { get; set; }
 
         public string DroneDescription => $"{Model.Name} - '{Model.Id}'";
@@ -79,16 +91,59 @@ namespace WinPhoneClient.ViewModel
             }
         }
 
-        public RelayCommand<ItemClickEventArgs> PlayVideoCommand
+        public RelayCommand<MediaElement> PauseVideoCommand
         {
             get
             {
-                return _playVideoCommand ?? (_playVideoCommand = new RelayCommand<ItemClickEventArgs>((args) =>
+                return _pauseVideoCommand ?? (_pauseVideoCommand = new RelayCommand<MediaElement>(video =>
                 {
-                    //TODO
-                }));
+                    if (video != null)
+                    {
+                        video.Pause();
+                        VideoStatus = VideoPlayStatus.Paused;
+                    }
+                }, video => VideoStatus == VideoPlayStatus.Playing));
             }
-        } 
+        }
+
+        public RelayCommand<MediaElement> PlayVideoCommand
+        {
+            get
+            {
+                return _playVideoCommand ?? (_playVideoCommand = new RelayCommand<MediaElement>(video =>
+                {
+                    if (video != null)
+                    {
+                            video.Play();
+                            VideoStatus = VideoPlayStatus.Playing;
+                    }
+                }, video => VideoStatus != VideoPlayStatus.Playing ));
+            }
+        }
+
+        public RelayCommand<MediaElement> StopVideoCommand
+        {
+            get
+            {
+                return _stopVideoCommand ?? (_stopVideoCommand = new RelayCommand<MediaElement>(video =>
+                {
+                    if (video != null)
+                    {
+                        video.Stop();
+                        VideoStatus = VideoPlayStatus.Stoped;
+                    }
+                }, video => VideoStatus != VideoPlayStatus.Stoped));
+            }
+        }
+        #endregion
+        #region Private methods
+
+        private void RaiseCanExecuteCommands()
+        {
+            PlayVideoCommand.RaiseCanExecuteChanged();
+            StopVideoCommand.RaiseCanExecuteChanged();
+            PauseVideoCommand.RaiseCanExecuteChanged();
+        }
         #endregion
     }
 }
